@@ -4,7 +4,7 @@
  *
  *	The map file is written to standard output.
  *
- *	$Id: harp.c,v 1.5 1995/10/02 15:45:04 vwelch Exp $
+ *	$Id: harp.c,v 1.6 1995/10/10 19:22:36 vwelch Exp $
  */
 #include <stdio.h>
 #include "basic_defines.h"
@@ -33,6 +33,7 @@ enum system_type {
   ARCH_CS6400,			/* Cray Server 6400		*/
   ARCH_GIGAROUTER,		/* Netstar Gigarouter		*/
   ARCH_EG1,			/* Essential EG-1		*/
+  ARCH_CM5,			/* CM5				*/
   ARCH_END_LIST
 };
 
@@ -45,6 +46,7 @@ struct token_mapping tokens[] = {
   { "cs6400",		ARCH_CS6400 },
   { "gigarouter",	ARCH_GIGAROUTER },
   { "eg1",		ARCH_EG1 },
+  { "cm5",		ARCH_CM5 },
   { NULL,		0 }
 };
 
@@ -57,6 +59,7 @@ char *arches[] = {
   "CS6400",
   "Gigarouter",
   "EG-1",
+  "CM5",
   ""
 };
 
@@ -207,8 +210,16 @@ comment(arch, out_file, comment, arg1, arg2, arg3, arg4, arg5, arg6)
   if (print_comments == FALSE)
     return;
 
-  fprintf(out_file, "#");
-  fprintf(out_file, comment, arg1, arg2, arg3, arg4, arg5, arg6);
+  switch(arch) {
+
+  case ARCH_CM5:	/* No comments */
+    break;
+
+  default:
+    fprintf(out_file, "#");
+    fprintf(out_file, comment, arg1, arg2, arg3, arg4, arg5, arg6);
+    break;
+  }
 }
 
 
@@ -310,6 +321,18 @@ print_header(arch, out_file, host_port)
     comment(arch, out_file,
 	    "\n");
     break;
+
+  case ARCH_CM5:
+    comment(arch, out_file,
+	    "\n");
+    comment(arch, out_file,
+	    "\tFile: /etc/cm/configuration/hippi_arp.input\n");
+    comment(arch, out_file,
+	    "\n");
+    comment(arch, out_file,
+	    "<IP>\t<ULA>\t<IFIELD>\tperm\n");
+    comment(arch, out_file,
+	    "\n");
   }
 }
 
@@ -458,6 +481,12 @@ print_entry(arch, out_file, map, local_host_port)
     entry_count++;
     }
     break;
+
+  case ARCH_CM5:
+    fprintf(out_file, "%s\t0:0:0:0:0:0\t%#x\tperm\n",
+	    netaddr_to_ascii(hostname_to_netaddr(hostname)),
+	    logical_to_ifield(logaddr));
+    break;
   }
 }
 
@@ -465,7 +494,8 @@ static void
 usage()
 {
   fprintf(stderr, "usage: harp <options> [<architecture>|hosts] [<hostname>]\n\n");
-  fprintf(stderr, "  Current architectures are: cray, sgi, convex\n");
+  fprintf(stderr, "  Current architectures are: cray, sgi, convex, dxe, cs6400, gigarouter,\n");
+  fprintf(stderr, "                             eg1, and cm5.\n");
   fprintf(stderr, "  Options:\n");
   fprintf(stderr, "\t-c <config file>   Specify configuration file to use.\n");
   fprintf(stderr, "\t-C                 Terse mode, don't print comments.\n");

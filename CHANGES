@@ -8,6 +8,8 @@ In Working Copy:
 		a quick poll. This was causing montentary pauses during
 		some outputs.
 	ADDED: Support for Netstar Gigarouter.
+	ADDED: Support for EG1.
+	ADDED: Support for CM5.
 
 From 0.2.1 to 0.2.2:
 	BUG FIX: Printing of error caused by a duplicate IP address printed
