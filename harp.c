@@ -4,7 +4,7 @@
  *
  *	The map file is written to standard output.
  *
- *	$Id: harp.c,v 1.7 1996/04/23 21:59:35 vwelch Exp $
+ *	$Id: harp.c,v 1.8 1996/06/28 16:26:17 vwelch Exp $
  */
 #include <stdio.h>
 #include "basic_defines.h"
@@ -27,27 +27,27 @@
 enum system_type {
   ARCH_HOSTS,			/* /etc/hosts format		*/
   ARCH_CRAY,			/* Cray				*/
-  ARCH_SGI,			/* SGI				*/
-  ARCH_DXE,			/* NSC DXE HIPPI gateway	*/
+  ARCH_SGI,				/* SGI				*/
+  ARCH_DXE,				/* NSC DXE HIPPI gateway	*/
   ARCH_CONVEX,			/* CONVEX			*/
   ARCH_CS6400,			/* Cray Server 6400		*/
   ARCH_GIGAROUTER,		/* Netstar Gigarouter		*/
-  ARCH_EG1,			/* Essential EG-1		*/
-  ARCH_CM5,			/* CM5				*/
+  ARCH_EG1,				/* Essential EG-1		*/
+  ARCH_CM5,				/* CM5				*/
   ARCH_END_LIST
 };
 
 struct token_mapping tokens[] = {
   { "hosts",		ARCH_HOSTS },
-  { "sgi",		ARCH_SGI },
-  { "cray",		ARCH_CRAY },
-  { "dxe",		ARCH_DXE },
+  { "sgi",			ARCH_SGI },
+  { "cray",			ARCH_CRAY },
+  { "dxe",			ARCH_DXE },
   { "convex",		ARCH_CONVEX },
   { "cs6400",		ARCH_CS6400 },
   { "gigarouter",	ARCH_GIGAROUTER },
-  { "eg1",		ARCH_EG1 },
-  { "cm5",		ARCH_CM5 },
-  { NULL,		0 }
+  { "eg1",			ARCH_EG1 },
+  { "cm5",			ARCH_CM5 },
+  { NULL, 0 }
 };
 
 char *arches[] = {

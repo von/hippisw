@@ -22,8 +22,16 @@ struct daemon_config_struct {
 #ifdef BUILD_CONFIG_STRUCTURES
 
 struct daemon_config_struct daemon_config =
-	{ "", 0, "", "bin/hippiswd", MAGIC_STRING, "config.hippi.password", 
-	    "hippiswd.log", "logcmd" };
+	{
+		"",
+		0,	
+		""	,	
+		"hippiswd",
+		MAGIC_STRING,
+		"config.hippi.password", 
+		"hippiswd.log",
+		"logcmd"
+	};
 
 #else /* BUILD_CONFIG_STRUCTURES */
 

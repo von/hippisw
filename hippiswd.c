@@ -28,28 +28,37 @@
 #include <sys/resource.h>
 #endif
 
-static void usage		PROTO((char *myname));
-static void background		PROTO((VOID));
+static void usage				PROTO((char *myname));
+static void background			PROTO((VOID));
 static void register_signals	PROTO((VOID));
-static void signal_catcher	PROTO((int signum));
+static void signal_catcher		PROTO((int signum));
 static int create_server_sock	PROTO((VOID));
 static int accept_new_client	PROTO((int server_sock));
-static int read_pid_file	PROTO((VOID));
-static void make_pid_file	PROTO((VOID));
-static void remove_pid_file	PROTO((VOID));
-void graceful_death		PROTO((int exit_status));
-void restart			PROTO((VOID));
-static void cleanup		PROTO((char *reason));
-static void check_host		PROTO((char *specified_host,
-				       char *actual_host));
+static int read_pid_file		PROTO((VOID));
+static void make_pid_file		PROTO((VOID));
+static void remove_pid_file		PROTO((VOID));
+void graceful_death				PROTO((int exit_status));
+void restart					PROTO((VOID));
+static void cleanup				PROTO((char *reason));
+static void check_host			PROTO((char *specified_host,
+									   char *actual_host));
 
 
 #define HIPPISWD_PID_FILE	"hippiswd.pid"
 
 /*
- *	Used by restart();
+ * Global variables and why they have to be global.
+ */
+
+/*
+ *	Used by restart() to correctly pass arguments.
  */
 static char			**hippiswd_argv;
+
+/*
+ * Used by cleanup() to close the server socket.
+ */
+static int			server_sock = CLOSED_SOCK;
 
 
 
@@ -72,8 +81,6 @@ main(argc, argv)
 
   char			*myname;
 
-  int			server_sock = CLOSED_SOCK;
-
   Boolean		done = FALSE;
 
   int			max_fd;			/* For select()		*/
@@ -93,6 +100,9 @@ main(argc, argv)
     myname = argv[0];
   else
     myname++;
+
+  /* Open syslog */
+  init_syslog(myname);
 
   /*	Process arguments		*/
   while ((c = getopt(argc, argv, "c:dfv")) != EOF)
@@ -134,9 +144,10 @@ main(argc, argv)
    *	Change to working directory
    */
   if (chdir(daemon_config.working_dir) < 0) {
-    fprintf(stderr, "Couldn't chdir to %s\n", daemon_config.working_dir);
-    perror("chdir()");
-    exit(1);
+	  fprintf(stderr, "Couldn't chdir to %s\n", daemon_config.working_dir);
+	  perror("chdir()");
+	  syslog(SYSLOG_DIED, "Couldn't chdir to %s\n", daemon_config.working_dir);
+	  exit(1);
   }
 
   /*
@@ -144,11 +155,12 @@ main(argc, argv)
    *	not in force_start state, then abort.
    */
   if (((pid = read_pid_file()) != ERROR) && (!force_start)) {
-    fprintf(stderr, "File %s already exists. Daemon with pid %d possibly\n",
+	  fprintf(stderr, "File %s already exists. Daemon with pid %d possibly\n",
 	    HIPPISWD_PID_FILE, pid);
-    fprintf(stderr, "already running. If not remove file %s in working directory.\n",
+	  fprintf(stderr, "already running. If not remove file %s in working directory.\n",
 	    HIPPISWD_PID_FILE);
-    exit(1);
+	  syslog(SYSLOG_DIED, "Daemon already running.");
+	  exit(1);
   }
 
   /*
@@ -157,12 +169,12 @@ main(argc, argv)
   passwd_conf(&passwd_file);
     
   if (open_log_file(daemon_config.log_file, myname) == ERROR) {
-    fprintf(stderr, "Couldn't open log file \"%s\".\n",
-	    daemon_config.log_file);
+	  fprintf(stderr, "Couldn't open log file \"%s\".\n",
+			  daemon_config.log_file);
+	  syslog(SYSLOG_DIED, "Couldn't open log file \"%s\".\n",
+			  daemon_config.log_file);
     exit(1);
   }
-
-  init_syslog(myname);
 
   /*	Initialize table of connections			*/
   alloc_conn_table();
@@ -210,9 +222,9 @@ main(argc, argv)
    *		MAIN LOOP
    */
   while (!done) {
-    fd_set		readfds, exceptfds;
+    fd_set			readfds, exceptfds;
     Connection		*conn;
-    int			conn_num;
+    int				conn_num;
     static int		client_sock = CLOSED_SOCK;
 
 
@@ -234,54 +246,54 @@ main(argc, argv)
 
     FOR_ALL_CONNECTIONS(conn, conn_num) {
       
-       if ((conn->switch_state == NO_CONNECTION) && (!debug))
-	 if (open_switch_conn(conn) == ERROR)
-	   select_timeout = &timeout;
+		if ((conn->switch_state == NO_CONNECTION) && (!debug))
+			if (open_switch_conn(conn) == ERROR)
+				select_timeout = &timeout;
 
-       if (conn->switch_state == CONNECTION_ESTABLISHED)
-	 FD_SET(conn->sw_sock, &readfds);
+		if (conn->switch_state == CONNECTION_ESTABLISHED)
+			FD_SET(conn->sw_sock, &readfds);
 
-       if (conn->client_state == CONNECTION_ESTABLISHED)
-	 FD_SET(conn->client_sock, &readfds);
-     }
+		if (conn->client_state == CONNECTION_ESTABLISHED)
+			FD_SET(conn->client_sock, &readfds);
+	}
 
     FD_SET(server_sock, &readfds);
     
     if (client_sock != CLOSED_SOCK)
-      FD_SET(client_sock, &readfds);
+		FD_SET(client_sock, &readfds);
     
     /* Also check for exceptions. */
     bcopy(&readfds, &exceptfds, sizeof(exceptfds));
 
     if (select(max_fd, &readfds, NULL, &exceptfds, select_timeout) < 0) {
-      log("select() error (errno = %d)\n", errno);
-      syslog(SYSLOG_DIED, "select() failed (%m). Exiting.");
-      graceful_death(1);
+		log("select() error (errno = %d)\n", errno);
+		syslog(SYSLOG_DIED, "select() failed (%m). Exiting.");
+		graceful_death(1);
     }
 
     FOR_ALL_CONNECTIONS(conn, conn_num) {
 
-      if ((conn->client_state == CONNECTION_ESTABLISHED) &&
-	  (FD_ISSET(conn->client_sock, &readfds) ||
-	  FD_ISSET(conn->client_sock, &exceptfds)))
-	handle_client_input(conn);
+		if ((conn->client_state == CONNECTION_ESTABLISHED) &&
+			(FD_ISSET(conn->client_sock, &readfds) ||
+			 FD_ISSET(conn->client_sock, &exceptfds)))
+			handle_client_input(conn);
       
-      if ((conn->switch_state == CONNECTION_ESTABLISHED) &&
-	  (FD_ISSET(conn->sw_sock, &readfds) ||
-	  FD_ISSET(conn->sw_sock, &exceptfds)))
-	handle_switch_input(conn);
+		if ((conn->switch_state == CONNECTION_ESTABLISHED) &&
+			(FD_ISSET(conn->sw_sock, &readfds) ||
+			 FD_ISSET(conn->sw_sock, &exceptfds)))
+			handle_switch_input(conn);
     }
 
 
     if ((client_sock != CLOSED_SOCK) &&
-	(FD_ISSET(client_sock, &readfds) ||
-	 FD_ISSET(client_sock, &exceptfds))) {
-      handle_client_request(client_sock);
-      client_sock = CLOSED_SOCK;
+		(FD_ISSET(client_sock, &readfds) ||
+		 FD_ISSET(client_sock, &exceptfds))) {
+		handle_client_request(client_sock);
+		client_sock = CLOSED_SOCK;
     }
     
     if (FD_ISSET(server_sock, &readfds) && (client_sock == CLOSED_SOCK))
-      client_sock = accept_new_client(server_sock);
+		client_sock = accept_new_client(server_sock);
   }
 }
     
@@ -411,6 +423,7 @@ register_signals()
     if(rc < 0)       {
       fprintf(stderr, "Couldn't register signal %d\n", signum);
       perror("signal()");
+	  syslog(SYSLOG_DIED, "Couldn't register signal %d\n", signum);
       exit(1);
     }
   }
@@ -461,9 +474,9 @@ signal_catcher(signum)
 static int
 create_server_sock()
 {
-  struct sockaddr_in		 addr;
-  int				sock;
-  int				reuseaddr = 1;
+  struct sockaddr_in		addr;
+  int						sock;
+  int						reuseaddr = 1;
 
   
   if ((sock = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
@@ -479,16 +492,18 @@ create_server_sock()
    *	Make it so we can reuse address for quick restarts.
    */
   setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-	     (char *) &reuseaddr, sizeof(reuseaddr));
+			 (char *) &reuseaddr, sizeof(reuseaddr));
   
   if (bind(sock, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-    perror("bind()");
-    exit(1);
+	  perror("bind()");
+	  syslog(SYSLOG_DIED, "bind() failed: %m");
+	  exit(1);
   }
 
   if (listen(sock, 5) == -1) {
-    perror("listen()");
-    exit(1);
+	  perror("listen()");
+	  syslog(SYSLOG_DIED, "listen() failed: %m");
+	  exit(1);
   }
 
   return sock;
@@ -598,6 +613,8 @@ graceful_death(exit_status)
 
 /*
  *	Restart with original arguments.
+ *
+ * Does not return.
  */
 void
 restart()
@@ -608,7 +625,7 @@ restart()
   cleanup("Daemon restarting.");
  
   /*
-   * If the binary path starts with a '/' then don't append working directory.
+   * If the binary path starts with a '/' then don't prepend working directory.
    */
   if (*(daemon_config.binary_path) == '/')
     strcpy(hippiswd_cmd, daemon_config.binary_path);
@@ -648,7 +665,13 @@ cleanup(reason)
       close_client_conn(conn);
     }
   }
-  
+
+  /*
+   * Need to close the server sock or it will cause problems
+   * after a restart.
+   */
+  close(server_sock);
+
   log("Closing log file.\n");
   
   close_log_file();

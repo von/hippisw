@@ -150,7 +150,6 @@ find_paths_recursive(current_switch, from_switch_num, initial_port,
   PORT		*port;
   int		port_num;
 
-  visited[current_switch->sw_num] = TRUE;
 
 #ifdef DEBUG_SWMAP
   fprintf(stderr, "  Transversed to %s\n", current_switch->sw_name);
@@ -221,6 +220,8 @@ find_paths_recursive(current_switch, from_switch_num, initial_port,
   /*
    *	Otherwise we must keep transversing links.
    */
+  visited[current_switch->sw_num] = TRUE;
+
   FOR_EACH_PORT(current_switch->sw_ports, port, port_num) {
     if (port->swp_type != HIPPI_LINK)
       continue;

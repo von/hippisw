@@ -201,19 +201,20 @@ read_from_switch(conn, buffer, len)
       syslog(SYSLOG_SW_EOF, "Get EOF from %s.\n", conn->sw->sw_name);
       log_message(conn->sw->sw_name, "Got EOF.\n");
       if (conn->client_state == CONNECTION_ESTABLISHED) {
-	char buffer[BUFFERLEN];
+		  char buffer[BUFFERLEN];
 
-	sprintf(buffer,
-		"\nDaemon lost connection to %s.\n",
-		conn->sw->sw_name);
-	write_to_client(conn, buffer, strlen(buffer));
-	close_client_conn(conn);
+		  /* XXX - try to reconnect */
+		  sprintf(buffer,
+				  "\nDaemon lost connection to %s.\n",
+				  conn->sw->sw_name);
+		  write_to_client(conn, buffer, strlen(buffer));
+		  close_client_conn(conn);
       }
       return ERROR;
 
     case TELNET_EOB:
       if (poll_switch(conn, SELECT_TIMEOUT) == FALSE)
-	done = TRUE;
+		  done = TRUE;
       break;
 
     case TELNET_OVERFLOW:
@@ -229,9 +230,9 @@ read_from_switch(conn, buffer, len)
       buffer[bytes_read] = '\0';
       /* Are we done with the line?			*/
       if (byte == '\n' ||
-	  (byte == conn->prompt_char && is_prompt(conn, buffer)) ||
-	  (byte == PASSWD_PROMPT_CHAR && is_password_prompt(buffer)))
-	done = TRUE;
+		  (byte == conn->prompt_char && is_prompt(conn, buffer)) ||
+		  (byte == PASSWD_PROMPT_CHAR && is_password_prompt(buffer)))
+		  done = TRUE;
     }
   }
 

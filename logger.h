@@ -14,15 +14,17 @@
 
 
 int open_log_file		PROTO((char *filename,
-				       char *default_name));
+							   char *default_name));
 /*
  *	XXX Kludge - no proto for log() or log_message() since they have
  *		 a variable number of arguments.
  */
+
 /*	For loggging daemon-specific messages			*/
-void log();		/* string, arg1, arg2, arg3, ...	*/
+void log();				/* string, arg1, arg2, arg3, ...	*/
+
 /*	For logging other stuff					*/
-void log_message();	/* name, string, arg1, arg2, arg3, ...	*/
+void log_message();		/* name, string, arg1, arg2, arg3, ...	*/
 
 void close_log_file		PROTO((VOID));
 
@@ -41,20 +43,20 @@ void init_syslog		PROTO((char *myname));
 #endif
 
 #ifndef SYSLOG_OPTS
-#define	SYSLOG_OPTS		LOG_CONS
+#define	SYSLOG_OPTS			LOG_CONS
 #endif
 
 
 /*
  * Priorities for syslog()
  */
-#define SYSLOG_SW_EOF		LOG_NOTICE	/* Got EOF from switch	*/
-#define SYSLOG_SW_FAILED_CONN	LOG_NOTICE	/* Failed to connect to
-						   switch		*/
-#define SYSLOG_KILLED		LOG_NOTICE	/* Killed by user or
-						   terminate signal	*/
-#define SYSLOG_DIED		LOG_ERR		/* Unexpected death
-						   (i.e. segment failt)	*/
-#define SYSLOG_RESTART		LOG_INFO	/* Restarted.		*/
+#define SYSLOG_SW_EOF			LOG_ERR		/* Got EOF from switch	*/
+#define SYSLOG_SW_FAILED_CONN	LOG_ERR		/* Failed to connect to
+											   switch		*/
+#define SYSLOG_KILLED			LOG_NOTICE	/* Killed by user or
+											   terminate signal	*/
+#define SYSLOG_DIED				LOG_ERR		/* Unexpected death
+											   (i.e. segment failt)	*/
+#define SYSLOG_RESTART			LOG_NOTICE	/* Restarted.		*/
 
 #endif /* _LOGGER_H */

@@ -93,7 +93,7 @@ close_log_file()
 /*
  *      Open log command.
  *
- *	Returns a open stram to stdin of log command or NULL on error.
+ *	Returns a open stream to stdin of log command or NULL on error.
  *
  */
 FILE *

@@ -4,6 +4,12 @@
 
 In Working Copy:
 	UPDATED: harp gigarouter output
+	BUG FIX: Close server socket on restart preventing "address
+		already in use" errors.
+	CLEANUP: Made sure sysloging was done anywhere hippiswd could
+		die in hippiswd.c
+	CLEANUP: When we're failing to connect to a switch we don't log
+		it every time we try and fail, just the first.
 
 From 0.2.2 to 0.2.3:
 	ADDED: Daemon now logs IP address of connecting client.

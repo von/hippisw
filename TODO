@@ -3,13 +3,9 @@
 		TODO list
 
 
- o	Add support to harp for CM5, HP, and others.
+ o	Add support to harp for HP, and others.
  o	Add hosts/nets to be gatewayed by a dxe (?)
- o	Log failed password, failed connect, any failed write to switch
-	(Done?)
  o	Combine log and syslog stuff.
- o	Check syslog() stuff: failed connection, bad password, message on
-		connection, dying and killed.
  o	Add setting of page size for ES-1.
 	- Add general switch-based connection setup
  o	Add tcpwrapper-type connection control.
@@ -27,6 +23,14 @@
 	in maximum password send count never being reached.
 	FIX: check for "Password OK" string.
  o	If daemon loses connection to a switch it doesn't realise it until
-	a user connects to the switch.
+	a user connects to the switch. This need to be handled more
+	gracefully (don't drop user connect).
  o	Ifield '-l' flag not working right.
+ o	First connection by user to switch after INIT string is sent
+	is dropped?
+ o	Last line of input from pipe being dropped?
+	The problem is that saving pathways on the PS32 takes so long that
+	the hippiswd times out and assumes its gotten a prompt. What
+	needs to be done is to disallow timing out for prompts and have
+	a comprehensive list of prompts.
 
