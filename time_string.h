@@ -11,7 +11,7 @@
 
 #include <sys/types.h>
 
-char *time_string		PROTO((time_t *clock));
+char *time_string			PROTO((time_t *clock));
 
 #define CURRENT_TIME		((time_t *) NULL)
 

@@ -19,7 +19,7 @@ static char *nsc_prompts[] = {
 
 static char *essential_prompts[] = {
     "ES-1> ",
-    "new code: ",		/* For download prompt		*/
+    "new code: ",		/* For download prompt	*/
     "-MORE-",			/* For page prompt		*/
     NULL
 };
@@ -40,16 +40,16 @@ static char *clusterswitch_prompts[] = {
  * Default attributes for switches
  */
 static struct switch_attributes attributes[] = {
-  /* Type, # ports, Smart, has default, bits shifted	*/
-  { HIPPISW_P8, 8, FALSE, FALSE, 4, nsc_prompts },
-  { HIPPISW_PS4, 4, TRUE, FALSE, 2, nsc_prompts }, 
-  { HIPPISW_PS8, 8, TRUE, FALSE, 4, nsc_prompts },
-  { HIPPISW_PS32, 32, TRUE, FALSE, 5, nsc_prompts },
-  { HIPPISW_IOSC4, 4, TRUE, TRUE, 2, iosc_prompts },
-  { HIPPISW_IOSC8, 8, TRUE, TRUE, 3, iosc_prompts },
-  { HIPPISW_NETSTAR, 16, TRUE, TRUE, 4, clusterswitch_prompts },
-  { HIPPISW_ES1, 16, TRUE, TRUE, 4, essential_prompts },
-  { HIPPISW_VIRT, 32, TRUE, TRUE, 0, NULL }
+	/* Type, # ports, Smart, has default, bits shifted	*/
+	{ HIPPISW_P8, 8, FALSE, FALSE, 4, nsc_prompts },
+	{ HIPPISW_PS4, 4, TRUE, FALSE, 2, nsc_prompts }, 
+	{ HIPPISW_PS8, 8, TRUE, FALSE, 4, nsc_prompts },
+	{ HIPPISW_PS32, 32, TRUE, FALSE, 5, nsc_prompts },
+	{ HIPPISW_IOSC4, 4, TRUE, TRUE, 2, iosc_prompts },
+	{ HIPPISW_IOSC8, 8, TRUE, TRUE, 3, iosc_prompts },
+	{ HIPPISW_NETSTAR, 16, TRUE, TRUE, 4, clusterswitch_prompts },
+	{ HIPPISW_ES1, 16, TRUE, TRUE, 4, essential_prompts },
+	{ HIPPISW_VIRT, 32, TRUE, TRUE, 0, NULL }
 };
 
 
@@ -58,14 +58,14 @@ static struct switch_attributes attributes[] = {
  */
 struct switch_attributes *
 get_sw_attributes(type)
-     SW_TYPE			type;
+	SW_TYPE			type;
 {
-  int		index = 0;
+	int		index = 0;
 
-  while (attributes[index].type != type)
-    index++;
+	while (attributes[index].type != type)
+		index++;
 
-  return &(attributes[index]);
+	return &(attributes[index]);
 }
 
 
@@ -74,43 +74,43 @@ get_sw_attributes(type)
  */
 char *
 get_sw_prompt(type, version)
-     SW_TYPE			type;
-     int			version;
+	SW_TYPE		type;
+	int			version;
 {
-  char *prompt;
+	char 		*prompt;
 
-  switch(type) {
+	switch(type) {
 
-  case HIPPISW_P8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS8:
-  case HIPPISW_PS32:
-    switch(version) {
-    case 1:
-      prompt = "SMS>";
-      break;
+	case HIPPISW_P8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS8:
+	case HIPPISW_PS32:
+		switch(version) {
+		case 1:
+			prompt = "SMS>";
+			break;
 
-    case 2:
-      prompt = "SMS2 > ";
-      break;
-    }
-    break;
+		case 2:
+			prompt = "SMS2 > ";
+			break;
+		}
+		break;
 
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-    prompt = "IOSC>";
-    break;
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+		prompt = "IOSC>";
+		break;
 
-  case HIPPISW_NETSTAR:
-    prompt = "OPER: > ";
-    break;
+	case HIPPISW_NETSTAR:
+		prompt = "OPER: > ";
+		break;
 
-  case HIPPISW_ES1:
-    prompt = "ES-1>";
-    break;
-  }
+	case HIPPISW_ES1:
+		prompt = "ES-1>";
+		break;
+	}
 
-  return prompt;
+	return prompt;
 }
 
   

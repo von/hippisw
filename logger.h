@@ -50,13 +50,13 @@ void init_syslog		PROTO((char *myname));
 /*
  * Priorities for syslog()
  */
-#define SYSLOG_SW_EOF			LOG_ERR		/* Got EOF from switch	*/
+#define SYSLOG_SW_EOF			LOG_ERR		/* Got EOF from switch		*/
 #define SYSLOG_SW_FAILED_CONN	LOG_ERR		/* Failed to connect to
-											   switch		*/
+											   switch					*/
 #define SYSLOG_KILLED			LOG_NOTICE	/* Killed by user or
-											   terminate signal	*/
+											   terminate signal			*/
 #define SYSLOG_DIED				LOG_ERR		/* Unexpected death
-											   (i.e. segment failt)	*/
-#define SYSLOG_RESTART			LOG_NOTICE	/* Restarted.		*/
+											   (i.e. segment failt)		*/
+#define SYSLOG_RESTART			LOG_NOTICE	/* Restarted.				*/
 
 #endif /* _LOGGER_H */

@@ -4,7 +4,7 @@
  *	Command front end for get statistics from the switches.
  *	Output meant to be piped into hippisw.
  *
- *	$Id: hippi_cmd.c,v 1.2 1995/05/06 22:34:03 vwelch Exp $
+ *	$Id: hippi_cmd.c,v 1.3 1996/08/20 20:20:27 vwelch Exp $
  *
  */
 
@@ -20,13 +20,13 @@
 #include <string.h>
 
 
-enum cmd_types {		/* Commands				*/
+enum cmd_types {		/* Commands					*/
   DISPLAY_STATS,		/* Display Stats			*/
   CLEAR_STATS			/* Clear Stats				*/
 };
 
-struct token_mapping cmds[] = {	/* Commands */
-  { "disp",	DISPLAY_STATS },	/* Display Stats		*/
+struct token_mapping cmds[] = {		/* Commands 			*/
+  { "disp",	DISPLAY_STATS },		/* Display Stats		*/
   { "display",	DISPLAY_STATS },	/* Display Stats		*/
   { "clear",	CLEAR_STATS },		/* Clear Stats			*/
   { NULL,	0 }
@@ -48,66 +48,66 @@ main(argc, argv)
      int	argc;
      char	**argv;
 {
-  extern char	*optarg;
-  extern int	optind, opterr;
-  int		arg;
+  extern char		*optarg;
+  extern int		optind, opterr;
+  int				arg;
 
-  int		arg_index;
+  int				arg_index;
 
-  char		*config_file = NULL;
+  char				*config_file = NULL;
 
-  char		*command;
-  int		cmd_type;
+  char				*command;
+  int				cmd_type;
 
-  char		*what;
+  char				*what;
 
-  int	errflg = FALSE;
+  int				errflg = FALSE;
 
   struct sw_port	*port;
-  struct sw		*sw;
+  struct sw			*sw;
 
-  FILE		*conf_file;
+  FILE				*conf_file;
 
-  int		port_num = PORT_NOT_DEFINED;
+  int				port_num = PORT_NOT_DEFINED;
 
 
   while((arg = getopt(argc, argv, "c:v")) != -1)
-    switch(arg) {
-    case 'c':
-      config_file = optarg;
-      break;
+	  switch(arg) {
+	  case 'c':
+		  config_file = optarg;
+		  break;
 
-    case 'v':
-      print_version_info();
-      exit(0);
+	  case 'v':
+		  print_version_info();
+		  exit(0);
 
-    default:
-      errflg++;
+	  default:
+		  errflg++;
 
-    }
+	  }
 
   if (optind == argc)
-    errflg++;
+	  errflg++;
 
   else
-    what = argv[optind++];
+	  what = argv[optind++];
 
   /*
    * Check commands for errors before we start.
    */
   if (optind == argc)
-    errflg++;
+	  errflg++;
 
   else
-    for (arg_index = optind; arg_index < argc; arg_index++)
-      if (parse_token(argv[arg_index], cmds) == TOKEN_NOT_FOUND) {
-	errflg++;
-	fprintf(errfile, "Unrecognized command: \"%s\"\n", argv[arg_index]);
-      }
+	  for (arg_index = optind; arg_index < argc; arg_index++)
+		  if (parse_token(argv[arg_index], cmds) == TOKEN_NOT_FOUND) {
+			  errflg++;
+			  fprintf(errfile, "Unrecognized command: \"%s\"\n", argv[arg_index]);
+		  }
 
   if (errflg) {
-    usage();
-    exit(1);
+	  usage();
+	  exit(1);
   }
 
   read_config(config_file, &config_file);
@@ -119,61 +119,61 @@ main(argc, argv)
   /* Check for "<port number>@<switch>"
    */
   if (strchr(what, '@') != NULL) {
-    char swname[SWNAMELEN];
+	  char swname[SWNAMELEN];
 
-    sscanf(what, "%d@%s", &port_num, swname);
+	  sscanf(what, "%d@%s", &port_num, swname);
 
-    if ((sw = find_switch_by_name(swname, FIND_DEFAULT)) == NULL) {
-      fprintf(errfile, "Unrecognized switch: \"%s\"\n", swname);
-      usage();
-      exit(1);
-    }
+	  if ((sw = find_switch_by_name(swname, FIND_DEFAULT)) == NULL) {
+		  fprintf(errfile, "Unrecognized switch: \"%s\"\n", swname);
+		  usage();
+		  exit(1);
+	  }
 
   } else {
-    /* Assume plain old host or switch name
+	  /* Assume plain old host or switch name
      */
-    if ((port = find_port_by_name(what, FIND_SUBSTRING)) == NULL) {
-      if ((sw = find_switch_by_name(what, FIND_SUBSTRING)) == NULL) {
-	fprintf(errfile, "Unrecognized device or host: \"%s\"\n", what);
-	usage();
-	exit(1);
-      }
-    } else {
-      sw = port->swp_switch;
-    }
+	  if ((port = find_port_by_name(what, FIND_SUBSTRING)) == NULL) {
+		  if ((sw = find_switch_by_name(what, FIND_SUBSTRING)) == NULL) {
+			  fprintf(errfile, "Unrecognized device or host: \"%s\"\n", what);
+			  usage();
+			  exit(1);
+		  }
+	  } else {
+		  sw = port->swp_switch;
+	  }
   }
 
   set_switch_output_stream(outfile);
 
   if (set_output_switch(sw) == NULL)
-    exit(1);
+	  exit(1);
 
   if (port != NULL)
-    port_num = port->swp_num;
+	  port_num = port->swp_num;
 
   while (optind < argc) {
-    command = argv[optind++];
+	  command = argv[optind++];
 
-    cmd_type = parse_token(command, cmds);
+	  cmd_type = parse_token(command, cmds);
 
-    switch(cmd_type) {
+	  switch(cmd_type) {
 
-    case DISPLAY_STATS:
-      if (port_num == PORT_NOT_DEFINED)
-	display_switch_stats();
-      else
-	display_port_stats(port_num);
+	  case DISPLAY_STATS:
+		  if (port_num == PORT_NOT_DEFINED)
+			  display_switch_stats();
+		  else
+			  display_port_stats(port_num);
 
-      break;
+		  break;
 
-    case CLEAR_STATS:
-      if (port_num == PORT_NOT_DEFINED)
-	clear_switch_stats();
-      else
-	clear_port_stats(port_num);
+	  case CLEAR_STATS:
+		  if (port_num == PORT_NOT_DEFINED)
+			  clear_switch_stats();
+		  else
+			  clear_port_stats(port_num);
 
-      break;
-    }
+		  break;
+	  }
   }
 
   fprintf(outfile, "quit\n");

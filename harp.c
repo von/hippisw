@@ -4,7 +4,7 @@
  *
  *	The map file is written to standard output.
  *
- *	$Id: harp.c,v 1.8 1996/06/28 16:26:17 vwelch Exp $
+ *	$Id: harp.c,v 1.9 1996/08/20 20:20:25 vwelch Exp $
  */
 #include <stdio.h>
 #include "basic_defines.h"
@@ -26,14 +26,14 @@
 
 enum system_type {
   ARCH_HOSTS,			/* /etc/hosts format		*/
-  ARCH_CRAY,			/* Cray				*/
-  ARCH_SGI,				/* SGI				*/
+  ARCH_CRAY,			/* Cray						*/
+  ARCH_SGI,				/* SGI						*/
   ARCH_DXE,				/* NSC DXE HIPPI gateway	*/
-  ARCH_CONVEX,			/* CONVEX			*/
-  ARCH_CS6400,			/* Cray Server 6400		*/
+  ARCH_CONVEX,			/* CONVEX					*/
+  ARCH_CS6400,			/* Cray Server 6400			*/
   ARCH_GIGAROUTER,		/* Netstar Gigarouter		*/
-  ARCH_EG1,				/* Essential EG-1		*/
-  ARCH_CM5,				/* CM5				*/
+  ARCH_EG1,				/* Essential EG-1			*/
+  ARCH_CM5,				/* CM5						*/
   ARCH_END_LIST
 };
 
@@ -66,13 +66,13 @@ char *arches[] = {
 
 
 static void	print_entry	PROTO((enum system_type arch,
-				       FILE *out_file,
-				       HOST_MAP *map,
-				       PORT *host_port));
+							   FILE *out_file,
+							   HOST_MAP *map,
+							   PORT *host_port));
 
 static void	print_header	PROTO((enum system_type arch,
-				       FILE *out_file,
-				       PORT *host_port));
+								   FILE *out_file,
+								   PORT *host_port));
 /*
  *	XXX-KLUDGE no proto for comment since it has a variable number of
  *		arguments.
@@ -80,427 +80,427 @@ static void	print_header	PROTO((enum system_type arch,
 static void	comment();
 static void	usage		PROTO((VOID));
 
-static char	*date_string;
+static char		*date_string;
 static Boolean	print_comments = TRUE;
 static Boolean	use_dot_address = FALSE;
 
-static char *hostname_to_string		PROTO((char *hostname));
+static char 	*hostname_to_string		PROTO((char *hostname));
 
 
 main(argc, argv)
-int argc;
-char **argv;
+	int argc;
+	char **argv;
 {
-  FILE			*conf_file;
-  FILE			*err_file = stderr;
-  FILE			*out_file = stdout;
-  char			*cfn = NULL;
-  char			*what = NULL;
-  char			*host = NULL;
-  PORT			*host_port = NULL;
-  HOST_MAP		*map;
-  enum system_type	arch;
-  time_t		tloc;
+	FILE				*conf_file;
+	FILE				*err_file = stderr;
+	FILE				*out_file = stdout;
+	char				*cfn = NULL;
+	char				*what = NULL;
+	char				*host = NULL;
+	PORT				*host_port = NULL;
+	HOST_MAP			*map;
+	enum system_type	arch;
+	time_t				tloc;
   
-  int			c;
-  extern int		optind;
-  extern char		*optarg;
-  int			errflg = 0;
+	int					c;
+	extern int			optind;
+	extern char			*optarg;
+	int					errflg = 0;
 
 
-  while ( (c = getopt(argc, argv, "c:itv")) != EOF)
-    switch(c) {
+	while ( (c = getopt(argc, argv, "c:itv")) != EOF)
+		switch(c) {
 
-    case 'c':
-      cfn = optarg;
-      break;
+		case 'c':
+			cfn = optarg;
+			break;
 
-    case 'i':
-      use_dot_address = TRUE;
-      break;
+		case 'i':
+			use_dot_address = TRUE;
+			break;
 
-    case 't':
-      print_comments = FALSE;
-      break;
+		case 't':
+			print_comments = FALSE;
+			break;
 
-    case 'v':
-      print_version_info();
-      exit(0);
+		case 'v':
+			print_version_info();
+			exit(0);
 
-    default:
-      errflg++;
-    }
+		default:
+			errflg++;
+		}
 
-  if (argc - optind < 1) {
-    errflg++;
+	if (argc - optind < 1) {
+		errflg++;
 
-  } else {
+	} else {
     
-    what = argv[optind++];
+		what = argv[optind++];
     
-    arch = parse_token(what, tokens);
+		arch = parse_token(what, tokens);
 
-    if (arch == TOKEN_NOT_FOUND) {
-      fprintf(stderr, "Unknown type %s.\n", what);
-      errflg++;
-    }
+		if (arch == TOKEN_NOT_FOUND) {
+			fprintf(stderr, "Unknown type %s.\n", what);
+			errflg++;
+		}
     
-    if (argc - optind != 0)
-      host = argv[optind++];
+		if (argc - optind != 0)
+			host = argv[optind++];
     
-    if (argc - optind != 0)
-      fprintf(stderr, "%s: Ignoring extra arguments.\n",
-	      argv[0]);
-  }
+		if (argc - optind != 0)
+			fprintf(stderr, "%s: Ignoring extra arguments.\n",
+					argv[0]);
+	}
 
-  /*	Do we need host name?	*/
-  if ((arch == ARCH_CRAY) || (arch == ARCH_GIGAROUTER)) {
-    if (host == NULL) {
-      fprintf(stderr, "Hostname required for %s architecture.\n\n",
-              arches[arch]);
-      errflg++;
-    }
+	/*	Do we need host name?	*/
+	if ((arch == ARCH_CRAY) || (arch == ARCH_GIGAROUTER)) {
+		if (host == NULL) {
+			fprintf(stderr, "Hostname required for %s architecture.\n\n",
+					arches[arch]);
+			errflg++;
+		}
 
-  } else {
+	} else {
 
-    /* If not silently ignore it. */
-    host = NULL;
-  }
+		/* If not silently ignore it. */
+		host = NULL;
+	}
 
-  if (errflg) {
-    usage();
-    exit(1);
-  }
+	if (errflg) {
+		usage();
+		exit(1);
+	}
 
-  /**	Build date string
-   **/
-  tloc = time(NULL);
-  date_string = ctime(&tloc);
+	/**	Build date string
+	**/
+	tloc = time(NULL);
+	date_string = ctime(&tloc);
   
-  read_config(cfn, &cfn);
+	read_config(cfn, &cfn);
 
-  if (host) {
-    host_port = find_port_by_name(host, FIND_SUBSTRING);
+	if (host) {
+		host_port = find_port_by_name(host, FIND_SUBSTRING);
 
-    if(host_port == NULL)	{
-      fprintf(stderr, "Host \"%s\" not found.\n", host);
-      exit(1);
-    }
-  }
+		if(host_port == NULL)	{
+			fprintf(stderr, "Host \"%s\" not found.\n", host);
+			exit(1);
+		}
+	}
 
-  print_header(arch, out_file, host_port);
+	print_header(arch, out_file, host_port);
   
-  /*
-   * Do for all addresses
-   */
-  FOR_ALL_HOST_MAPS(map)
-    print_entry(arch, out_file, map, host_port);
+	/*
+	 * Do for all addresses
+	 */
+	FOR_ALL_HOST_MAPS(map)
+		print_entry(arch, out_file, map, host_port);
   
-  exit(0);
+	exit(0);
 }
 
 
 static void
 comment(arch, out_file, comment, arg1, arg2, arg3, arg4, arg5, arg6)
-     enum system_type	arch;
-     FILE		*out_file;
-     char		*comment;
-     char		*arg1, *arg2, *arg3, *arg4, *arg5, *arg6;
+	enum system_type	arch;
+	FILE				*out_file;
+	char				*comment;
+	char				*arg1, *arg2, *arg3, *arg4, *arg5, *arg6;
 {
-  if (print_comments == FALSE)
-    return;
+	if (print_comments == FALSE)
+		return;
 
-  switch(arch) {
+	switch(arch) {
 
-  case ARCH_CM5:	/* No comments */
-    break;
+	case ARCH_CM5:	/* No comments */
+		break;
 
-  default:
-    fprintf(out_file, "#");
-    fprintf(out_file, comment, arg1, arg2, arg3, arg4, arg5, arg6);
-    break;
-  }
+	default:
+		fprintf(out_file, "#");
+		fprintf(out_file, comment, arg1, arg2, arg3, arg4, arg5, arg6);
+		break;
+	}
 }
 
 
 static void
 print_header(arch, out_file, host_port)
-     enum system_type	arch;
-     FILE		*out_file;
-     PORT		*host_port;
+	enum system_type	arch;
+	FILE				*out_file;
+	PORT				*host_port;
 {
-  comment(arch, out_file, "\n");
+	comment(arch, out_file, "\n");
 
-  switch(arch) {
-  case ARCH_CRAY:
-    comment(arch, out_file, "\tARP table for Cray: %s\n",
-	    host_port->host_name);
-    break;
+	switch(arch) {
+	case ARCH_CRAY:
+		comment(arch, out_file, "\tARP table for Cray: %s\n",
+				host_port->host_name);
+		break;
 
-  case ARCH_HOSTS:
-    comment(arch, out_file, "\tHIPPI ARP Table (/etc/hosts format)\n");
-    break;
+	case ARCH_HOSTS:
+		comment(arch, out_file, "\tHIPPI ARP Table (/etc/hosts format)\n");
+		break;
 
-  default:
-    comment(arch, out_file, "\tARP table for %s\n",
-	    arches[arch]);
-  }
+	default:
+		comment(arch, out_file, "\tARP table for %s\n",
+				arches[arch]);
+	}
   
-  comment(arch, out_file, "\n");
-  comment(arch, out_file, "\tCreated: %s", date_string);
-  comment(arch, out_file, "\n");
+	comment(arch, out_file, "\n");
+	comment(arch, out_file, "\tCreated: %s", date_string);
+	comment(arch, out_file, "\n");
 
-  switch(arch) {
-  case ARCH_CRAY:
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "\tFile: /etc/hycf.hsx0\n");
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "\t\t\t\t\t\tMinor number\n");
-    comment(arch, out_file,
-	    "\t Hostname\t\t\t\tI-field    In   Out   MTU\n");
-    comment(arch, out_file,
-	    "      ------------\t\t\t\t--------  ----  ----  -----\n");
-    break;
+	switch(arch) {
+	case ARCH_CRAY:
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"\tFile: /etc/hycf.hsx0\n");
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"\t\t\t\t\t\tMinor number\n");
+		comment(arch, out_file,
+				"\t Hostname\t\t\t\tI-field    In   Out   MTU\n");
+		comment(arch, out_file,
+				"      ------------\t\t\t\t--------  ----  ----  -----\n");
+		break;
     
-  case ARCH_SGI:
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "\tFile: /usr/etc/hippi.imap\n");
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    " Hostname\t\t\t I-field\tHIPPI ULA (optional)\n");
-    comment(arch, out_file,
-	    "----------\t\t\t----------\t--------------------\n");
-    break;
+	case ARCH_SGI:
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"\tFile: /usr/etc/hippi.imap\n");
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				" Hostname\t\t\t I-field\tHIPPI ULA (optional)\n");
+		comment(arch, out_file,
+				"----------\t\t\t----------\t--------------------\n");
+		break;
 		
-  case ARCH_CONVEX:
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "\tFile: /etc/hippi.arp\n");
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "\tFormat:\n");
-    comment(arch, out_file,
-	    " route addhippi host <dest> <gateway> <metric> <mtu> <ifield>\n");
-    comment(arch, out_file,
-	    "\n");
-    break;
+	case ARCH_CONVEX:
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"\tFile: /etc/hippi.arp\n");
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"\tFormat:\n");
+		comment(arch, out_file,
+				" route addhippi host <dest> <gateway> <metric> <mtu> <ifield>\n");
+		comment(arch, out_file,
+				"\n");
+		break;
 
-  case ARCH_CS6400:
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "\tFile: /etc/opt/CYRShippi/hippi.art0\n");
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    " Inet\t\t\t\tULA\t\t\tI-field\n");
-    comment(arch, out_file,
-	    "----------\t\t\t-------\t\t\t----------\n");
-    break;
+	case ARCH_CS6400:
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"\tFile: /etc/opt/CYRShippi/hippi.art0\n");
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				" Inet\t\t\t\tULA\t\t\tI-field\n");
+		comment(arch, out_file,
+				"----------\t\t\t-------\t\t\t----------\n");
+		break;
 
-  case ARCH_GIGAROUTER:
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "\tFile: /etc/grarp.conf\n");
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "\tFormat:\n");
-    comment(arch, out_file,
-	    "\t<board> <IP address> <Ifield>\n");
-    comment(arch, out_file,
-	    "\n");
-    break;
+	case ARCH_GIGAROUTER:
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"\tFile: /etc/grarp.conf\n");
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"\tFormat:\n");
+		comment(arch, out_file,
+				"\t<board> <IP address> <Ifield>\n");
+		comment(arch, out_file,
+				"\n");
+		break;
 
-  case ARCH_CM5:
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "\tFile: /etc/cm/configuration/hippi_arp.input\n");
-    comment(arch, out_file,
-	    "\n");
-    comment(arch, out_file,
-	    "<IP>\t<ULA>\t<IFIELD>\tperm\n");
-    comment(arch, out_file,
-	    "\n");
-  }
+	case ARCH_CM5:
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"\tFile: /etc/cm/configuration/hippi_arp.input\n");
+		comment(arch, out_file,
+				"\n");
+		comment(arch, out_file,
+				"<IP>\t<ULA>\t<IFIELD>\tperm\n");
+		comment(arch, out_file,
+				"\n");
+	}
 }
 
 
 
 static void
 print_entry(arch, out_file, map, local_host_port)
-     enum system_type	arch;
-     FILE		*out_file;
-     HOST_MAP		*map;
-     PORT		*local_host_port;
+	enum system_type	arch;
+	FILE				*out_file;
+	HOST_MAP			*map;
+	PORT				*local_host_port;
 {
-  Logaddr		logaddr = map->logaddr;
-  PORT			*host_port = map->port;
-  SWITCH		*sw = host_port->swp_switch;
-  char			*hostname = map->hostname;
+	Logaddr		logaddr = map->logaddr;
+	PORT		*host_port = map->port;
+	SWITCH		*sw = host_port->swp_switch;
+	char		*hostname = map->hostname;
   
-  /* XXX - make HOSTS a special case so I don't have to gave all these
-   * if map->netaddr == NETADDR_NULL)'s all over the place.
-   */
+	/* XXX - make HOSTS a special case so I don't have to gave all these
+	 * if map->netaddr == NETADDR_NULL)'s all over the place.
+	 */
 
-  switch(arch) {
-  case ARCH_CRAY:
-    if (map->netaddr == NETADDR_NULL)
-      return;
+	switch(arch) {
+	case ARCH_CRAY:
+		if (map->netaddr == NETADDR_NULL)
+			return;
 
-    if (use_dot_address)
-      comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
-    fprintf(out_file, "direct %-40s", hostname_to_string(hostname));
-    fprintf(out_file, "\t%8.8x", logical_to_ifield(logaddr));
-    fprintf(out_file, "  %4.4x  %4.4x  %d ;\n",
-	    local_host_port->cray_idev, local_host_port->cray_odev,
-	    host_port->host_mtu);
-    break;
+		if (use_dot_address)
+			comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
+		fprintf(out_file, "direct %-40s", hostname_to_string(hostname));
+		fprintf(out_file, "\t%8.8x", logical_to_ifield(logaddr));
+		fprintf(out_file, "  %4.4x  %4.4x  %d ;\n",
+				local_host_port->cray_idev, local_host_port->cray_odev,
+				host_port->host_mtu);
+		break;
 
-  case ARCH_SGI:
-    if (map->netaddr == NETADDR_NULL)
-      return;
+	case ARCH_SGI:
+		if (map->netaddr == NETADDR_NULL)
+			return;
 
-    if (use_dot_address)
-      comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
+		if (use_dot_address)
+			comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
     
-    fprintf(out_file, "%-24s", hostname_to_string(hostname));
-    fprintf(out_file, "\t%#x\n", logical_to_ifield(logaddr));
+		fprintf(out_file, "%-24s", hostname_to_string(hostname));
+		fprintf(out_file, "\t%#x\n", logical_to_ifield(logaddr));
+		break;
+
+	case ARCH_HOSTS:
+		{
+			struct hostent *hinfo;
+			char **aliases, *fullname;
+      
+			comment(arch, out_file, "\n");
+			comment(arch, out_file, " %-38s\tAddress: %03x\n",
+					hostname, logaddr);
+			comment(arch, out_file, " Switch: %-30s\tPort: %-3d\n",
+					sw->sw_name, host_port->swp_num);
+      
+			if (map->netaddr == NETADDR_NULL)
+				return;
+      
+			if ((hinfo = gethostbyname(hostname)) != NULL) {
+				fullname = hinfo->h_name;
+				aliases = hinfo->h_aliases;
+			} else {
+				fullname = "";
+				aliases = NULL;
+			}
+
+			fprintf(out_file, "%s\t%s",
+					netaddr_to_ascii(map->netaddr), fullname);
+      
+			if (aliases != NULL) {
+				int index = 0;
+
+				while (aliases[index] != NULL) {
+					fprintf(out_file, " %s", aliases[index]);
+					index++;
+				}
+			}
+      
+			fprintf(out_file, " %s\n", hostname);
+      
+		}
+    break;
+    
+	case ARCH_DXE:
+		if (map->netaddr == NETADDR_NULL)
+			return;
+    
+		fprintf(out_file, "define host %s hippi %#x\t# %s\n",
+				netaddr_to_ascii(map->netaddr),
+				logical_to_ifield(logaddr), hostname);
+		break;
+    
+	case ARCH_CONVEX:
+		if (map->netaddr == NETADDR_NULL)
+			return;
+    
+		if (use_dot_address)
+			comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
+
+		fprintf(out_file, "route addhippi host %s %s 0 65280 %#x\n",
+				hostname_to_string(hostname), hostname_to_string(hostname),
+				logical_to_ifield(logaddr));
+		break;
+    
+	case ARCH_CS6400:
+		if (map->netaddr == NETADDR_NULL)
+			return;
+
+		if (use_dot_address)
+			comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
+
+		fprintf(out_file, "gh0%d0 %-24sdw\t0:0:0:0:0:0\t\t%#x\n",
+				hostname_to_string(hostname),
+				logical_to_ifield(logaddr));
+		break;
+
+	case ARCH_GIGAROUTER:
+		if (map->netaddr == NETADDR_NULL)
+			return;
+
+		if (use_dot_address)
+			comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
+
+		fprintf(out_file, "gh%02d0\t%s\t%#x\n",
+				local_host_port->giga_board_num,
+				hostname_to_string(hostname),
+				logical_to_ifield(logaddr));
+		break;
+
+	case ARCH_EG1:
+		{
+			static int entry_count = 1;
+
+			if (map->netaddr == NETADDR_NULL)
+				return;
+
+			if (use_dot_address)
+				comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
+  
+			fprintf(out_file, "IP%d=%s ULA%d=0-0-0-0-0-0 SWADDR%d=%x\n",
+					entry_count, hostname_to_string(hostname),
+					entry_count, entry_count, logaddr);
+
+			entry_count++;
+		}
     break;
 
-  case ARCH_HOSTS:
-    {
-      struct hostent *hinfo;
-      char **aliases, *fullname;
-      
-      comment(arch, out_file, "\n");
-      comment(arch, out_file, " %-38s\tAddress: %03x\n",
-	      hostname, logaddr);
-      comment(arch, out_file, " Switch: %-30s\tPort: %-3d\n",
-	      sw->sw_name, host_port->swp_num);
-      
-      if (map->netaddr == NETADDR_NULL)
-	return;
-      
-      if ((hinfo = gethostbyname(hostname)) != NULL) {
-	fullname = hinfo->h_name;
-	aliases = hinfo->h_aliases;
-      } else {
-	fullname = "";
-	aliases = NULL;
-      }
-
-      fprintf(out_file, "%s\t%s",
-	      netaddr_to_ascii(map->netaddr), fullname);
-      
-      if (aliases != NULL) {
-	int index = 0;
-
-	while (aliases[index] != NULL) {
-	  fprintf(out_file, " %s", aliases[index]);
-	  index++;
+	case ARCH_CM5:
+		fprintf(out_file, "%s\t0:0:0:0:0:0\t%#x\tperm\n",
+				netaddr_to_ascii(hostname_to_netaddr(hostname)),
+				logical_to_ifield(logaddr));
+		break;
 	}
-      }
-      
-      fprintf(out_file, " %s\n", hostname);
-      
-    }
-    break;
-    
-  case ARCH_DXE:
-    if (map->netaddr == NETADDR_NULL)
-      return;
-    
-    fprintf(out_file, "define host %s hippi %#x\t# %s\n",
-	    netaddr_to_ascii(map->netaddr),
-	    logical_to_ifield(logaddr), hostname);
-    break;
-    
-  case ARCH_CONVEX:
-    if (map->netaddr == NETADDR_NULL)
-      return;
-    
-    if (use_dot_address)
-      comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
-
-    fprintf(out_file, "route addhippi host %s %s 0 65280 %#x\n",
-	    hostname_to_string(hostname), hostname_to_string(hostname),
-	    logical_to_ifield(logaddr));
-    break;
-    
-  case ARCH_CS6400:
-    if (map->netaddr == NETADDR_NULL)
-      return;
-
-    if (use_dot_address)
-      comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
-
-    fprintf(out_file, "gh0%d0 %-24sdw\t0:0:0:0:0:0\t\t%#x\n",
-	    hostname_to_string(hostname),
-	    logical_to_ifield(logaddr));
-    break;
-
-  case ARCH_GIGAROUTER:
-    if (map->netaddr == NETADDR_NULL)
-      return;
-
-    if (use_dot_address)
-      comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
-
-    fprintf(out_file, "gh%02d0\t%s\t%#x\n",
-      local_host_port->giga_board_num,
-      hostname_to_string(hostname),
-      logical_to_ifield(logaddr));
-    break;
-
-  case ARCH_EG1:
-    {
-    static int entry_count = 1;
-
-    if (map->netaddr == NETADDR_NULL)
-      return;
-
-    if (use_dot_address)
-      comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
-  
-    fprintf(out_file, "IP%d=%s ULA%d=0-0-0-0-0-0 SWADDR%d=%x\n",
-	    entry_count, hostname_to_string(hostname),
-	    entry_count, entry_count, logaddr);
-
-    entry_count++;
-    }
-    break;
-
-  case ARCH_CM5:
-    fprintf(out_file, "%s\t0:0:0:0:0:0\t%#x\tperm\n",
-	    netaddr_to_ascii(hostname_to_netaddr(hostname)),
-	    logical_to_ifield(logaddr));
-    break;
-  }
 }
 
 static void
 usage()
 {
-  fprintf(stderr, "usage: harp <options> [<architecture>|hosts] [<hostname>]\n\n");
-  fprintf(stderr, "  Current architectures are: cray, sgi, convex, dxe, cs6400, gigarouter,\n");
-  fprintf(stderr, "                             eg1, and cm5.\n");
-  fprintf(stderr, "  Options:\n");
-  fprintf(stderr, "\t-c <config file>   Specify configuration file to use.\n");
-  fprintf(stderr, "\t-C                 Terse mode, don't print comments.\n");
-  fprintf(stderr, "\t-i                 Use dot addresses instead of hostnames.\n");
-  fprintf(stderr, "\t-v                 Print version information and quit.\n");
+	fprintf(stderr, "usage: harp <options> [<architecture>|hosts] [<hostname>]\n\n");
+	fprintf(stderr, "  Current architectures are: cray, sgi, convex, dxe, cs6400, gigarouter,\n");
+	fprintf(stderr, "                             eg1, and cm5.\n");
+	fprintf(stderr, "  Options:\n");
+	fprintf(stderr, "\t-c <config file>   Specify configuration file to use.\n");
+	fprintf(stderr, "\t-C                 Terse mode, don't print comments.\n");
+	fprintf(stderr, "\t-i                 Use dot addresses instead of hostnames.\n");
+	fprintf(stderr, "\t-v                 Print version information and quit.\n");
 }
 
 
@@ -510,11 +510,11 @@ usage()
  */
 static char *
 hostname_to_string(hostname)
-     char		*hostname;
+	char		*hostname;
 {
-  if (use_dot_address)
-    return netaddr_to_ascii(hostname_to_netaddr(hostname));
-  else
-    return hostname_to_fullname(hostname);
+	if (use_dot_address)
+		return netaddr_to_ascii(hostname_to_netaddr(hostname));
+	else
+		return hostname_to_fullname(hostname);
 }
     

@@ -26,14 +26,14 @@
 
 static char *config_paths[] = {
 #ifdef CONFIG_FILE
-  CONFIG_FILE,
+	CONFIG_FILE,
 #endif
 /*
  *	Add extra config files here
  */
-  "/usr/local/etc/config.hippi",
-  "/usr/local/etc/hippisw/config.hippi",
-  NULL
+	"/usr/local/etc/config.hippi",
+	"/usr/local/etc/hippisw/config.hippi",
+	NULL
 };
 
 /*
@@ -45,22 +45,22 @@ static FILE	*error_file = stderr;
  *	Keywords
  */
 enum keywords_values {
-  KEYWD_HIPPISWD,
-  KEYWD_SWITCH,
-  KEYWD_PORT,
-  KEYWD_DPORT,
-  KEYWD_ADDRESS,
-  KEYWD_COMMENT
+	KEYWD_HIPPISWD,
+	KEYWD_SWITCH,
+	KEYWD_PORT,
+	KEYWD_DPORT,
+	KEYWD_ADDRESS,
+	KEYWD_COMMENT
 };
 
 static struct token_mapping keywords[] = {
-  { "hippiswd", KEYWD_HIPPISWD },
-  { "switch", KEYWD_SWITCH },
-  { "port", KEYWD_PORT },
-  { "dport", KEYWD_DPORT },
-  { "address", KEYWD_ADDRESS },
-  { "#", KEYWD_COMMENT },
-  { NULL, 0 }
+	{ "hippiswd", KEYWD_HIPPISWD },
+	{ "switch", KEYWD_SWITCH },
+	{ "port", KEYWD_PORT },
+	{ "dport", KEYWD_DPORT },
+	{ "address", KEYWD_ADDRESS },
+	{ "#", KEYWD_COMMENT },
+	{ NULL, 0 }
 };
 
 
@@ -69,7 +69,7 @@ static void check_config		PROTO((VOID));
 extern void hippiswd_conf		PROTO((VOID));
 extern void address_conf		PROTO((VOID));
 extern void port_conf			PROTO((SWITCH *sw,
-					       int width));
+									   int width));
 extern SWITCH *switch_conf		PROTO((VOID));
 
 
@@ -85,91 +85,91 @@ extern SWITCH *switch_conf		PROTO((VOID));
 
 void
 read_config(config_file, file_opened)
-     char		*config_file;
-     char		**file_opened;
+	char		*config_file;
+	char		**file_opened;
 {
-  int			path_index = 0;
-  char			*keyword;
-  int			token;
-  SWITCH		*current_switch = NULL;
+	int			path_index = 0;
+	char		*keyword;
+	int			token;
+	SWITCH		*current_switch = NULL;
 
-  if (config_file == NULL) {
-    while (config_paths[path_index] != NULL) {
-      if (parse_file(config_paths[path_index]) == NO_ERROR)
-	break;
+	if (config_file == NULL) {
+		while (config_paths[path_index] != NULL) {
+			if (parse_file(config_paths[path_index]) == NO_ERROR)
+				break;
 
-      path_index++;
-    }
-    if (config_paths[path_index] == NULL) {
-      fprintf(stderr, "Couldn't open configuration file. Exiting.\n");
-      exit(1);
-    }
+			path_index++;
+		}
+		if (config_paths[path_index] == NULL) {
+			fprintf(stderr, "Couldn't open configuration file. Exiting.\n");
+			exit(1);
+		}
     
-    if (file_opened != NULL)
-      *file_opened = config_paths[path_index];
-  } else {
-    if (parse_file(config_file) == ERROR) {
-      perror(config_file);
+		if (file_opened != NULL)
+			*file_opened = config_paths[path_index];
+	} else {
+		if (parse_file(config_file) == ERROR) {
+			perror(config_file);
      
-      if (file_opened != NULL)
-	*file_opened = config_file;
-    }
-  }
+			if (file_opened != NULL)
+				*file_opened = config_file;
+		}
+	}
 
 #ifdef DEBUG_CONF
-      fprintf(stderr, "Opened config file: %s\n", config_paths[path_index]);
+	fprintf(stderr, "Opened config file: %s\n", config_paths[path_index]);
 #endif
 
-  /*
-   *	Enter loop until EOF is reached.
-   */
+	/*
+	 *	Enter loop until EOF is reached.
+	 */
 
-  while ((keyword = read_keyword()) != NULL) {
+	while ((keyword = read_keyword()) != NULL) {
 
-    if ((token = parse_token(keyword, keywords)) == TOKEN_NOT_FOUND) {
-      config_error("\"%s\" is not recognized. Skipping.\n", keyword);
-      next_keyword();
-      continue;
-    }
+		if ((token = parse_token(keyword, keywords)) == TOKEN_NOT_FOUND) {
+			config_error("\"%s\" is not recognized. Skipping.\n", keyword);
+			next_keyword();
+			continue;
+		}
 
   
-    switch(token) {
-    case KEYWD_HIPPISWD:
-      hippiswd_conf();
-      break;
+		switch(token) {
+		case KEYWD_HIPPISWD:
+			hippiswd_conf();
+			break;
 
-    case KEYWD_SWITCH:
-      current_switch = switch_conf();
-      break;
+		case KEYWD_SWITCH:
+			current_switch = switch_conf();
+			break;
 
-    case KEYWD_DPORT:
-    case KEYWD_PORT:
-      if (current_switch == NULL) {
-	config_error("Port defined before switch. Skipping.\n");
-	next_keyword();
-	break;
-      }
+		case KEYWD_DPORT:
+		case KEYWD_PORT:
+			if (current_switch == NULL) {
+				config_error("Port defined before switch. Skipping.\n");
+				next_keyword();
+				break;
+			}
 
-      port_conf(current_switch,
-		(token == KEYWD_PORT ? SINGLE_WIDE : DOUBLE_WIDE));
-      break;
+			port_conf(current_switch,
+					  (token == KEYWD_PORT ? SINGLE_WIDE : DOUBLE_WIDE));
+			break;
 
-    case KEYWD_ADDRESS:
-      address_conf();
-      break;
+		case KEYWD_ADDRESS:
+			address_conf();
+			break;
 
-    case KEYWD_COMMENT:
-      next_line();
-      break;
-    }
-  }
+		case KEYWD_COMMENT:
+			next_line();
+			break;
+		}
+	}
 
-  check_config();
+	check_config();
 
-  close_parse();
+	close_parse();
 
 #ifdef DEBUG_CONF
-  fprintf(stderr, "Done parsing config file.\n");
+	fprintf(stderr, "Done parsing config file.\n");
 #endif
 }
       
@@ -178,13 +178,13 @@ read_config(config_file, file_opened)
  *	Print a configuration error with filename and linenumber.
  */
 void config_error(string, arg1, arg2, arg3, arg4, arg5, arg6)
-     char		*string;
-     char		*arg1, *arg2, *arg3, *arg4, *arg5, *arg6;
+	char		*string;
+	char		*arg1, *arg2, *arg3, *arg4, *arg5, *arg6;
 {
-  fprintf(error_file,  "ERROR: %s line %d\n\t",
-	  parsed_filename(), parsed_linenumber());
+	fprintf(error_file,  "ERROR: %s line %d\n\t",
+			parsed_filename(), parsed_linenumber());
 
-  fprintf(error_file, string, arg1, arg2, arg3, arg4, arg5, arg6);
+	fprintf(error_file, string, arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
 /*
@@ -192,14 +192,14 @@ void config_error(string, arg1, arg2, arg3, arg4, arg5, arg6)
  *	number.
  */
 void config_error_l(linenumber, string, arg1, arg2, arg3, arg4, arg5, arg6)
-     int		linenumber;
-     char		*string;
-     char		*arg1, *arg2, *arg3, *arg4, *arg5, *arg6;
+	int			linenumber;
+	char		*string;
+	char		*arg1, *arg2, *arg3, *arg4, *arg5, *arg6;
 {
-  fprintf(error_file,  "ERROR: %s line %d\n\t",
-	  parsed_filename(), linenumber);
+	fprintf(error_file,  "ERROR: %s line %d\n\t",
+			parsed_filename(), linenumber);
 
-  fprintf(error_file, string, arg1, arg2, arg3, arg4, arg5, arg6);
+	fprintf(error_file, string, arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
 
@@ -209,36 +209,36 @@ void config_error_l(linenumber, string, arg1, arg2, arg3, arg4, arg5, arg6)
  */
 Boolean
 is_numeric(s)
-     char		*s;
+	char		*s;
 {
-  if(s == NULL)
-    return FALSE;
+	if(s == NULL)
+		return FALSE;
   
-  if(*s == '0')   {
-    s++;
-    if(*s == 'x' || *s == 'X')      {
-      s++;
-      while(*s)       {
-	if (isxdigit(*s++))
-	  continue;
-	return FALSE;
-      }
-    } else  {
-      while(*s)       {
-	if(isdigit(*s) && *s != '8' && *s++ != '9')
-	  continue;
-	return FALSE;
-      }
-    }
-  } else  {
-    while(*s)       {
-      if(isdigit(*s++))
-	continue;
-      return FALSE;
-    }
-  }
+	if(*s == '0')   {
+		s++;
+		if(*s == 'x' || *s == 'X')      {
+			s++;
+			while(*s)       {
+				if (isxdigit(*s++))
+					continue;
+				return FALSE;
+			}
+		} else  {
+			while(*s)       {
+				if(isdigit(*s) && *s != '8' && *s++ != '9')
+					continue;
+				return FALSE;
+			}
+		}
+	} else  {
+		while(*s)       {
+			if(isdigit(*s++))
+				continue;
+			return FALSE;
+		}
+	}
   
-  return TRUE;
+	return TRUE;
 }
 
 
@@ -254,57 +254,57 @@ is_numeric(s)
 static void
 check_config()
 {
-  SWITCH		*sw;
-  PORT			*port;
-  int			portnum;
+	SWITCH		*sw;
+	PORT		*port;
+	int			portnum;
 
-  FOR_ALL_SWITCHES(sw) {
-    sort_portlist(sw->sw_ports);
+	FOR_ALL_SWITCHES(sw) {
+		sort_portlist(sw->sw_ports);
 
-    FOR_EACH_PORT(sw->sw_ports, port, portnum) {
+		FOR_EACH_PORT(sw->sw_ports, port, portnum) {
 
-      if (port->swp_tester == TRUE) {
-	if (addr_config.tester_port == NULL) {
-	  addr_config.tester_port = port;
-	} else {
-	  config_error_l(port->swp_linenum,
-			 "Ignoring duplicate tester port.\n");
-	  port->swp_tester = FALSE;
+			if (port->swp_tester == TRUE) {
+				if (addr_config.tester_port == NULL) {
+					addr_config.tester_port = port;
+				} else {
+					config_error_l(port->swp_linenum,
+								   "Ignoring duplicate tester port.\n");
+					port->swp_tester = FALSE;
+				}
+			}
+
+			if (port->swp_type != HIPPI_LINK)
+				continue;
+
+			port->link_sw = find_switch_by_name(port->link_swname, FIND_DEFAULT);
+
+			if (port->link_sw == NOT_FOUND) {
+				config_error_l(port->swp_linenum,
+							   "Switch \"%s\" not found. Changing port to a NULL device.\n",
+							   port->link_swname);
+
+				port->swp_type = HIPPI_NULL;
+			}
+		}
 	}
-      }
 
-      if (port->swp_type != HIPPI_LINK)
-	continue;
+	/*
+	 *	Check for conflicts with loopback address.
+	 */
+	if (addr_config.loopback_addr != LOGADDR_NULL) {
+		LOGICAL_MAP *map;
 
-      port->link_sw = find_switch_by_name(port->link_swname, FIND_DEFAULT);
+		map = find_map_by_logaddr(addr_config.loopback_addr);
 
-      if (port->link_sw == NOT_FOUND) {
-	config_error_l(port->swp_linenum,
-		       "Switch \"%s\" not found. Changing port to a NULL device.\n",
-		       port->link_swname);
+		if (map != NULL) {
+			PORT		*port = map->port;
 
-	port->swp_type = HIPPI_NULL;
-      }
-    }
-  }
+			config_error_l(port->swp_linenum,
+						   "Logical address overrides loopback address.\n");
 
-  /*
-   *	Check for conflicts with loopback address.
-   */
-  if (addr_config.loopback_addr != LOGADDR_NULL) {
-    LOGICAL_MAP *map;
-
-    map = find_map_by_logaddr(addr_config.loopback_addr);
-
-    if (map != NULL) {
-      PORT		*port = map->port;
-
-      config_error_l(port->swp_linenum,
-		     "Logical address overrides loopback address.\n");
-
-      addr_config.loopback_addr = LOGADDR_NULL; 
-    }
-  }
+			addr_config.loopback_addr = LOGADDR_NULL; 
+		}
+	}
 }
       
 

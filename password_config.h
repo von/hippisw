@@ -9,8 +9,8 @@
 
 
 struct password_config_struct {
-  char	default_sw_password[PASSWDLEN];
-  char	daemon_password[PASSWDLEN];
+	char	default_sw_password[PASSWDLEN];
+	char	daemon_password[PASSWDLEN];
 };
 
 

@@ -13,7 +13,7 @@
 
 static	FILE		*file;
 static	char		*filename;
-static	int		linenumber;
+static	int			linenumber;
 static	Boolean		need_new_line;    	/* Need to read next line	*/
 static	char		current_line[BUFFER_SIZE];
 
@@ -21,18 +21,18 @@ static	char		*read_token	PROTO((Boolean stop_at_cr));
 
 /* In strqtok.c */
 extern char *strqtok	PROTO((char *string,
-			       char *delim,
-			       char *quotemarks,
-			       char *commentchars,
-			       unsigned int flags));
+							   char *delim,
+							   char *quotemarks,
+							   char *commentchars,
+							   unsigned int flags));
 
 
 /*	Options for strqtok()
  */
-static char *sep = " \t\n";
-static char *quotemarkers = "\"'";
-static char *commentchars = "#";
-static int strqtok_flags = 01;		/* Strip quote markers		*/
+static char 	*sep = " \t\n";
+static char 	*quotemarkers = "\"'";
+static char 	*commentchars = "#";
+static int 		strqtok_flags = 01;		/* Strip quote markers		*/
 
 
 /*
@@ -40,18 +40,18 @@ static int strqtok_flags = 01;		/* Strip quote markers		*/
  */
 int
 parse_file(name)
-     char		*name;
+	char		*name;
 {
-  file = fopen(name, "r");
+	file = fopen(name, "r");
 
-  if (file == NULL)
-    return ERROR;
+	if (file == NULL)
+		return ERROR;
 
-  filename = name;
-  linenumber = 0;
-  need_new_line = TRUE;
+	filename = name;
+	linenumber = 0;
+	need_new_line = TRUE;
 
-  return NO_ERROR;
+	return NO_ERROR;
 }
 
 
@@ -61,10 +61,10 @@ parse_file(name)
 void
 close_parse()
 {
-  fclose(file);
+	fclose(file);
 
-  filename = NULL;
-  linenumber = 0;
+	filename = NULL;
+	linenumber = 0;
 }
 
 
@@ -74,7 +74,7 @@ close_parse()
 char *
 parsed_filename()
 {
-  return filename;
+	return filename;
 }
 
 
@@ -84,7 +84,7 @@ parsed_filename()
 int
 parsed_linenumber()
 {
-  return linenumber;
+	return linenumber;
 }
 
 
@@ -118,52 +118,55 @@ read_keyword()
  */
 static char *
 read_token(stop_at_cr)
-     Boolean		stop_at_cr;
+	Boolean		stop_at_cr;
 {
-  char		*token = NULL;
+	char		*token = NULL;
 
 
-  if (file == NULL)
-    return NULL;
+	if (file == NULL)
+		return NULL;
 
-  while (token == NULL) {
+	while (token == NULL) {
 
-    /* Read new line if needed */
-    if (need_new_line) {
-      if (fgets(current_line, BUFFER_SIZE, file) == NULL)	/* EOF */
-	return NULL;
+		/* Read new line if needed */
+		if (need_new_line) {
+			if (fgets(current_line, BUFFER_SIZE, file) == NULL)	/* EOF */
+				return NULL;
 
-      linenumber++;
-      need_new_line = FALSE;
+			linenumber++;
+			need_new_line = FALSE;
 
-      token = strqtok(current_line, sep, quotemarkers, commentchars, strqtok_flags);
+			token = strqtok(current_line, sep, quotemarkers, commentchars,
+							strqtok_flags);
     
-    } else {	/* Read token from current line */
+		} else {	/* Read token from current line */
 
-      token = strqtok(NULL, sep, quotemarkers, commentchars, strqtok_flags);
+			token = strqtok(NULL, sep, quotemarkers, commentchars,
+							strqtok_flags);
 
-    }
+		}
 
-    if (token == NULL) {	/* Unescaped CR */
+		if (token == NULL) {	/* Unescaped CR */
 
-     if (stop_at_cr)
-	return NULL;
+			if (stop_at_cr)
+				return NULL;
  
-     need_new_line = TRUE;
-     continue;
-    }
+			need_new_line = TRUE;
+			continue;
+		}
 
-    if (*token == '\\') {
-      token = strqtok(NULL, sep, quotemarkers, commentchars, strqtok_flags);
+		if (*token == '\\') {
+			token = strqtok(NULL, sep, quotemarkers, commentchars,
+							strqtok_flags);
 
-      if (token == NULL) {	/* Escaped CR */
-	need_new_line = TRUE;
-	continue;
-      }
-    }
-  }
+			if (token == NULL) {	/* Escaped CR */
+				need_new_line = TRUE;
+				continue;
+			}
+		}
+	}
 
-  return token;
+	return token;
 }
 
       
@@ -172,7 +175,7 @@ read_token(stop_at_cr)
  */
 char *read_line()
 {
-  return(strqtok(NULL, "\n", quotemarkers, commentchars, strqtok_flags));
+	return(strqtok(NULL, "\n", quotemarkers, commentchars, strqtok_flags));
 }
 	
 
@@ -191,8 +194,8 @@ next_line()
 void
 next_keyword()
 {
-  while(read_option() != NULL)
-    {}
+	while(read_option() != NULL)
+		{}
 }
       
 

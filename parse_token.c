@@ -15,17 +15,17 @@
  */
 int
 parse_token(token, mappings)
-     char			*token;
-     struct token_mapping	*mappings;
+	char					*token;
+	struct token_mapping	*mappings;
 {
-  int	index = 0;
+	int						index = 0;
 
-  while (mappings[index].token != NULL) {
-    if (strcasecmp(token, mappings[index].token) == 0)
-      return mappings[index].value;
+	while (mappings[index].token != NULL) {
+		if (strcasecmp(token, mappings[index].token) == 0)
+			return mappings[index].value;
 
-    index++;
-  }
+		index++;
+	}
 
-  return TOKEN_NOT_FOUND;
+	return TOKEN_NOT_FOUND;
 }

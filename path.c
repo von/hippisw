@@ -16,19 +16,19 @@
 PATH *
 malloc_path()
 {
-  PATH	*path;
+	PATH	*path;
 
-  path = (PATH *) malloc(sizeof(PATH));
+	path = (PATH *) malloc(sizeof(PATH));
 
-  if (path == NULL) {
-    perror("malloc()");
-    exit(1);
-  }
+	if (path == NULL) {
+		perror("malloc()");
+		exit(1);
+	}
 
-  path->num_ports = 0;
-  path->cost = INFINITE_COST;
+	path->num_ports = 0;
+	path->cost = INFINITE_COST;
 
-  return path;
+	return path;
 }
 
 
@@ -37,15 +37,15 @@ malloc_path()
  */
 PATH *
 better_path(path, port, cost)
-     PATH		*path;
-     PORT		*port;
-     int		cost;
+	PATH	*path;
+	PORT	*port;
+	int		cost;
 {
-  path->num_ports = 1;
-  path->ports[0] = port;
-  path->cost = cost;
+	path->num_ports = 1;
+	path->ports[0] = port;
+	path->cost = cost;
 
-  return path;
+	return path;
 }
 
 
@@ -54,23 +54,23 @@ better_path(path, port, cost)
  */
 PATH *
 add_port_to_path(path, port)
-     PATH		*path;
-     PORT		*port;
+	PATH		*path;
+	PORT		*port;
 {
-  if (path->num_ports < MAX_PORTS_PER_PATH) {
-    int		port_num;
+	if (path->num_ports < MAX_PORTS_PER_PATH) {
+		int		port_num;
 
-    /*	Check to see if port is already in list...
-     */
-    for (port_num = 0; port_num < path->num_ports; port_num++)
-      if (path->ports[port_num] == port)
+		/*	Check to see if port is already in list...
+		 */
+		for (port_num = 0; port_num < path->num_ports; port_num++)
+			if (path->ports[port_num] == port)
+				return path;
+
+		path->ports[path->num_ports] = port;
+		(path->num_ports)++;
+	}
+
 	return path;
-
-    path->ports[path->num_ports] = port;
-    (path->num_ports)++;
-  }
-
-  return path;
 }
 
 
@@ -79,15 +79,15 @@ add_port_to_path(path, port)
  */
 Boolean
 path_empty(path)
-     PATH		*path;
+	PATH		*path;
 {
-  if (path == NULL)
-    return TRUE;
+	if (path == NULL)
+		return TRUE;
 
-  if ((path->cost == INFINITE_COST) || (path->num_ports == 0))
-    return TRUE;
+	if ((path->cost == INFINITE_COST) || (path->num_ports == 0))
+		return TRUE;
 
-  return FALSE;
+	return FALSE;
 }
 
 
@@ -96,24 +96,24 @@ path_empty(path)
  */
 PATHLIST *
 add_path_to_pathlist(pathlist, path)
-     PATHLIST		*pathlist;
-     PATH		*path;
+	PATHLIST		*pathlist;
+	PATH			*path;
 {
-  if (pathlist == NULL) {
-    pathlist = (PATHLIST *) malloc(sizeof(*pathlist));
+	if (pathlist == NULL) {
+		pathlist = (PATHLIST *) malloc(sizeof(*pathlist));
 
-    if (pathlist == NULL) {
-      perror("malloc()");
-      exit(1);
-    }
+		if (pathlist == NULL) {
+			perror("malloc()");
+			exit(1);
+		}
 
-    pathlist->num_hops = 0;
-  }
+		pathlist->num_hops = 0;
+	}
 
-  pathlist->hop[pathlist->num_hops] = path;
-  pathlist->num_hops++;
+	pathlist->hop[pathlist->num_hops] = path;
+	pathlist->num_hops++;
 
-  return pathlist;
+	return pathlist;
 }
 
 /*
@@ -121,10 +121,10 @@ add_path_to_pathlist(pathlist, path)
  */
 void
 disperse_pathlist(pathlist)
-     PATHLIST		*pathlist;
+	PATHLIST		*pathlist;
 {
-  if (pathlist != NULL)
-    free(pathlist);
+	if (pathlist != NULL)
+		free(pathlist);
 }
 
 /*
@@ -132,30 +132,30 @@ disperse_pathlist(pathlist)
  */
 PATH *
 first_path(pathlist, hop)
-     PATHLIST		*pathlist;
-     int		*hop;
+	PATHLIST		*pathlist;
+	int				*hop;
 {
-  *hop = 0;
+	*hop = 0;
   
-  if (pathlist == NULL)
-    return NULL;
+	if (pathlist == NULL)
+		return NULL;
 
-  return pathlist->hop[0];
+	return pathlist->hop[0];
 }
 
 PATH *
 next_path(pathlist, hop)
-     PATHLIST		*pathlist;
-     int		*hop;
+	PATHLIST		*pathlist;
+	int				*hop;
 {
-  if (pathlist == NULL)
-    return NULL;
+	if (pathlist == NULL)
+		return NULL;
 
-  *hop++;
+	*hop++;
 
-  if ((*hop) < pathlist->num_hops)
-    return pathlist->hop[*hop];
+	if ((*hop) < pathlist->num_hops)
+		return pathlist->hop[*hop];
 
-  return NULL;
+	return NULL;
 }
 

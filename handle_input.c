@@ -20,8 +20,8 @@
 
 
 static int read_from_switch	        PROTO((Connection *conn,
-				        char *buffer,
-				        int len));
+										   char *buffer,
+										   int len));
 static Boolean switch_input_waiting	PROTO((Connection *conn));
 static void send_sw_password		PROTO((Connection *conn));
 
@@ -154,23 +154,23 @@ handle_switch_input(conn)
  */
 void
 handle_client_input(conn)
-     Connection			*conn;
+	Connection			*conn;
 {
-  char 				buffer[BUFFERLEN];
-  int				bytes_read;
+	char 				buffer[BUFFERLEN];
+	int				bytes_read;
 
-  if (fgets(buffer, BUFFERLEN, conn->client_in) == NULL) {
-    /*	EOF 	*/
-    log_message(conn->sw->sw_name, "Client disconnected\n");
-    close_client_conn(conn);
-    return;
-  }
+	if (fgets(buffer, BUFFERLEN, conn->client_in) == NULL) {
+		/*	EOF 	*/
+		log_message(conn->sw->sw_name, "Client disconnected\n");
+		close_client_conn(conn);
+		return;
+	}
 
-  write_to_switch(conn, buffer, strlen(buffer));
+	write_to_switch(conn, buffer, strlen(buffer));
 
-  conn->got_prompt = FALSE;
+	conn->got_prompt = FALSE;
   
-  conn->last_input_time = time(NULL);
+	conn->last_input_time = time(NULL);
 }
 
 
@@ -182,74 +182,74 @@ handle_client_input(conn)
  */
 int
 read_from_switch(conn, buffer, len)
-     Connection			*conn;
-     char			*buffer;
-     int			len;
+	Connection			*conn;
+	char			*buffer;
+	int			len;
 {
-  int			bytes_read = 0;
-  int			byte;
-  Boolean		done = FALSE;
+	int			bytes_read = 0;
+	int			byte;
+	Boolean		done = FALSE;
 
 
-  NULL_STRING(buffer);
+	NULL_STRING(buffer);
   
-  /*
-   *  If last read attempt returned an empty buffer, then poll
-   *  for data first.
-   */
-  if (conn->last_status == TELNET_EOB)
-    if (switch_input_waiting(conn) == FALSE)
-      return 0;
+	/*
+	 *  If last read attempt returned an empty buffer, then poll
+	 *  for data first.
+	 */
+	if (conn->last_status == TELNET_EOB)
+		if (switch_input_waiting(conn) == FALSE)
+			return 0;
 
-  while(!done) {
-    byte = telnet(conn->sw_sock, &conn->telnet_state);
+	while(!done) {
+		byte = telnet(conn->sw_sock, &conn->telnet_state);
 
-    conn->last_status = byte;
+		conn->last_status = byte;
 
-    switch(byte) {
+		switch(byte) {
       
-    case 0:
-      continue;			/* Ignore nulls	*/
+		case 0:
+			continue;			/* Ignore nulls	*/
 
-    case TELNET_EOF:
-      close_switch_conn(conn);
-      syslog(SYSLOG_SW_EOF, "Get EOF from %s.\n", conn->sw->sw_name);
-      log_message(conn->sw->sw_name, "Got EOF.\n");
-      if (conn->client_state == CONNECTION_ESTABLISHED) {
-		  char buffer[BUFFERLEN];
+		case TELNET_EOF:
+			close_switch_conn(conn);
+			syslog(SYSLOG_SW_EOF, "Get EOF from %s.\n", conn->sw->sw_name);
+			log_message(conn->sw->sw_name, "Got EOF.\n");
+			if (conn->client_state == CONNECTION_ESTABLISHED) {
+				char buffer[BUFFERLEN];
 
-		  /* XXX - try to reconnect */
-		  sprintf(buffer,
-				  "\nDaemon lost connection to %s.\n",
-				  conn->sw->sw_name);
-		  write_to_client(conn, buffer, strlen(buffer));
-		  close_client_conn(conn);
-      }
-      return ERROR;
+				/* XXX - try to reconnect */
+				sprintf(buffer,
+						"\nDaemon lost connection to %s.\n",
+						conn->sw->sw_name);
+				write_to_client(conn, buffer, strlen(buffer));
+				close_client_conn(conn);
+			}
+			return ERROR;
 
-    case TELNET_EOB:
-      if (switch_input_waiting(conn) == FALSE)
-		  done = TRUE;
-      break;
+		case TELNET_EOB:
+			if (switch_input_waiting(conn) == FALSE)
+				done = TRUE;
+			break;
 
-    case TELNET_OVERFLOW:
-      log_message("telnet", "telnet buffer overflow!\n");
-      syslog(SYSLOG_DIED, "Telnet buffer overflow. Dying.");
-      graceful_death(1);
+		case TELNET_OVERFLOW:
+			log_message("telnet", "telnet buffer overflow!\n");
+			syslog(SYSLOG_DIED, "Telnet buffer overflow. Dying.");
+			graceful_death(1);
 
-    case '\r':			/* Strip */
-      continue;
+		case '\r':			/* Strip */
+			continue;
 
-    default:			/* Real character	*/
-      buffer[bytes_read++] = (char) byte;
-      buffer[bytes_read] = '\0';
-      /* Are we done with the line?			*/
-      if (byte == '\n')
-	  done = TRUE;
-    }
-  }
+		default:			/* Real character	*/
+			buffer[bytes_read++] = (char) byte;
+			buffer[bytes_read] = '\0';
+			/* Are we done with the line?			*/
+			if (byte == '\n')
+				done = TRUE;
+		}
+	}
 
-  return bytes_read;
+	return bytes_read;
 }
 
 
@@ -261,29 +261,29 @@ read_from_switch(conn, buffer, len)
  */
 static Boolean
 switch_input_waiting(conn)
-Connection	*conn;
+	Connection	*conn;
 {
-  struct timeval	timeout;
-  fd_set      		readfds;
-  static int		max_fd = -1;
+	struct timeval	timeout;
+	fd_set      		readfds;
+	static int		max_fd = -1;
 
   
-  if (max_fd == -1)
-    max_fd = (int) ulimit(4, 0);
+	if (max_fd == -1)
+		max_fd = (int) ulimit(4, 0);
 
-  FD_ZERO(&readfds);
-  FD_SET(conn->sw_sock, &readfds);
+	FD_ZERO(&readfds);
+	FD_SET(conn->sw_sock, &readfds);
   
-  timeout.tv_usec = SWITCH_INPUT_WAIT_USECS;
-  timeout.tv_sec = SWITCH_INPUT_WAIT_SECS;
+	timeout.tv_usec = SWITCH_INPUT_WAIT_USECS;
+	timeout.tv_sec = SWITCH_INPUT_WAIT_SECS;
 
   
-  if (select(max_fd, &readfds, NULL, NULL, &timeout) < 0) {
-    log("select() error %d\n", errno);
-    return FALSE;
-  }
+	if (select(max_fd, &readfds, NULL, NULL, &timeout) < 0) {
+		log("select() error %d\n", errno);
+		return FALSE;
+	}
   
-  return FD_ISSET(conn->sw_sock, &readfds);
+	return FD_ISSET(conn->sw_sock, &readfds);
 }
 
 
@@ -293,51 +293,51 @@ Connection	*conn;
  */
 static void
 send_sw_password(conn) 
-     Connection			*conn;
+	Connection			*conn;
 {
-  char				*passwd;
-  char				buffer[BUFFERLEN];
+	char				*passwd;
+	char				buffer[BUFFERLEN];
 
 
-  passwd = conn->sw->sw_password;
+	passwd = conn->sw->sw_password;
 
-  if (strlen(passwd) == 0)
-    passwd = password_config.default_sw_password;
+	if (strlen(passwd) == 0)
+		passwd = password_config.default_sw_password;
 
-  if (strlen(passwd) == 0)
-    return;		/* No password to send		*/
+	if (strlen(passwd) == 0)
+		return;		/* No password to send		*/
 
 
-  if ((conn->passwd_count)++ > MAX_PASSWORD_SENDS) {
-    log("Reached maximum number of password sends to %s. Giving up.\n",
-	conn->sw->sw_name);
+	if ((conn->passwd_count)++ > MAX_PASSWORD_SENDS) {
+		log("Reached maximum number of password sends to %s. Giving up.\n",
+			conn->sw->sw_name);
     
-    if (conn->client_state == CONNECTION_ESTABLISHED) {
-      char buffer[BUFFERLEN];
+		if (conn->client_state == CONNECTION_ESTABLISHED) {
+			char buffer[BUFFERLEN];
       
-      sprintf(buffer,
-	      "\nSorry maximum password send count to %s reached.\n",
-	      conn->sw->sw_name);
+			sprintf(buffer,
+					"\nSorry maximum password send count to %s reached.\n",
+					conn->sw->sw_name);
 
-      write_to_client(conn, buffer, strlen(buffer));
+			write_to_client(conn, buffer, strlen(buffer));
       
-      close_client_conn(conn);
-    }
+			close_client_conn(conn);
+		}
 
-    syslog(SYSLOG_SW_FAILED_CONN,
-	   "Cannot log onto %s due to bad password.",
-	   conn->sw->sw_name);
+		syslog(SYSLOG_SW_FAILED_CONN,
+			   "Cannot log onto %s due to bad password.",
+			   conn->sw->sw_name);
 
-    close_switch_conn(conn);
-    conn->switch_state = CONNECTION_FAILED;	
-    conn->conn_fail_logged = TRUE;
-    return;
-  }
+		close_switch_conn(conn);
+		conn->switch_state = CONNECTION_FAILED;	
+		conn->conn_fail_logged = TRUE;
+		return;
+	}
 
-  log("Sending password to %s.\n", conn->sw->sw_name);
+	log("Sending password to %s.\n", conn->sw->sw_name);
  
-  strcpy(buffer, passwd);
+	strcpy(buffer, passwd);
 
-  write_to_switch(conn, buffer, strlen(buffer));
+	write_to_switch(conn, buffer, strlen(buffer));
 }
 

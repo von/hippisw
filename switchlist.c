@@ -12,7 +12,7 @@
 
 
 static SWITCH	*switchlist = NULL;
-static int	number_switches = 0;
+static int		number_switches = 0;
 
 /*
  *	Add a switch to the list.
@@ -21,30 +21,30 @@ static int	number_switches = 0;
  */
 int
 add_switch(sw)
-     SWITCH		*sw;
+	SWITCH		*sw;
 {
-  number_switches++;
+	number_switches++;
 
-  sw->sw_next = NULL;
+	sw->sw_next = NULL;
 
-  if (switchlist == NULL)
-    switchlist = sw;
-  else {
-    SWITCH      *sw_entry = switchlist;
+	if (switchlist == NULL)
+		switchlist = sw;
+	else {
+		SWITCH      *sw_entry = switchlist;
 
-    /*	Find end of list
-     */
-    while (sw_entry->sw_next != NULL)
-      sw_entry = sw_entry->sw_next;
+		/*	Find end of list
+		 */
+		while (sw_entry->sw_next != NULL)
+			sw_entry = sw_entry->sw_next;
 
-    sw_entry->sw_next = sw;
-  }
+		sw_entry->sw_next = sw;
+	}
   
 #ifdef DEBUG_SWITCHLIST
-  fprintf(stderr, "Added %s as switch #%d.\n", sw->sw_name, number_switches);
+	fprintf(stderr, "Added %s as switch #%d.\n", sw->sw_name, number_switches);
 #endif
 
-  return number_switches;
+	return number_switches;
 }
 
 /*
@@ -53,7 +53,7 @@ add_switch(sw)
 int
 number_of_switches()
 {
-  return number_switches;
+	return number_switches;
 }
 
 
@@ -63,13 +63,13 @@ number_of_switches()
 void
 free_switchlist()
 {
-  SWITCH	*sw = switchlist, *next;
+	SWITCH	*sw = switchlist, *next;
 
-  while (sw != NULL) {
-    next = sw->sw_next;
-    free(sw);
-    sw = next;
-  }
+	while (sw != NULL) {
+		next = sw->sw_next;
+		free(sw);
+		sw = next;
+	}
 }
 
 
@@ -81,16 +81,16 @@ free_switchlist()
 SWITCH *
 first_switch()
 {
-  return switchlist;
+	return switchlist;
 }
 
 SWITCH *
 next_switch(sw)
-     SWITCH		*sw;
+	SWITCH		*sw;
 {
-  if (sw == NULL)
-    return NULL;
+	if (sw == NULL)
+		return NULL;
 
-  return sw->sw_next;
+	return sw->sw_next;
 }
 

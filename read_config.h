@@ -13,7 +13,7 @@
 
 
 void read_config		PROTO((char *config_file,
-				       char **file_opened));
+							   char **file_opened));
 Boolean is_numeric		PROTO((char *string));
 /*
  *	XXX Kludge - no proto for config_error() since we pass it a variable

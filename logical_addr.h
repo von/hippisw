@@ -16,14 +16,14 @@ typedef	int		Logaddr;
 /*
  *	Used to indicate that no logical address exists.
  */
-#define	LOGADDR_NULL		((Logaddr) -1)
+#define	LOGADDR_NULL			((Logaddr) -1)
 
 /*
  *	Used to indicate that the logical address has not yet been assigned.
  */
 #define	LOGADDR_NOT_ASSIGNED	((Logaddr) -2)	
 
-#define	LOGADDR_MAX		0xfff
+#define	LOGADDR_MAX				0xfff
 
 Ifield logical_to_ifield	PROTO((Logaddr logaddr));
 Boolean legal_logical_addr	PROTO((Logaddr logaddr));

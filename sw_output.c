@@ -80,64 +80,64 @@ static Boolean do_comments = TRUE;
  */
 char *
 set_output_switch(sw)
-     struct sw *sw;
+	struct sw *sw;
 {
-  char *return_string = command_str;
+	char *return_string = command_str;
   
   
-  switch(sw->sw_type) {
+	switch(sw->sw_type) {
     
-  case HIPPISW_PS4:
-  case HIPPISW_PS8:
-  case HIPPISW_PS32:
-    switch (sw->sw_version) {
+	case HIPPISW_PS4:
+	case HIPPISW_PS8:
+	case HIPPISW_PS32:
+		switch (sw->sw_version) {
 
-    case 1:
-    case 2:
-      break;
+		case 1:
+		case 2:
+			break;
 
-    default:
-      fprintf(stderr, "%s: Unsupported SMS version %d.\n",
-	      sw->sw_name, sw->sw_version);
-      return_string = NULL;
-    }
-    break;
+		default:
+			fprintf(stderr, "%s: Unsupported SMS version %d.\n",
+					sw->sw_name, sw->sw_version);
+			return_string = NULL;
+		}
+		break;
     
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-  case HIPPISW_NETSTAR:
-  case HIPPISW_ES1:
-    if (sw->sw_version != 1) {
-      fprintf(stderr, "%s: Unsupported version %d.\n",
-	      sw->sw_name, sw->sw_version);
-      return_string = NULL;
-    }
-    break;
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+	case HIPPISW_NETSTAR:
+	case HIPPISW_ES1:
+		if (sw->sw_version != 1) {
+			fprintf(stderr, "%s: Unsupported version %d.\n",
+					sw->sw_name, sw->sw_version);
+			return_string = NULL;
+		}
+		break;
 
-  case HIPPISW_P8:
-    fprintf(stderr,
-	    "%s: P8 switch doesn't support commands\n",
-	    sw->sw_name);
-    return_string = NULL;
-    break;
+	case HIPPISW_P8:
+		fprintf(stderr,
+				"%s: P8 switch doesn't support commands\n",
+				sw->sw_name);
+		return_string = NULL;
+		break;
     
-  default:
-    fprintf(stderr, "%s: Unknown switch type (%d)\n",
-	    sw->sw_name, sw->sw_type);
-    return_string = NULL;
-    break;
-  }
+	default:
+		fprintf(stderr, "%s: Unknown switch type (%d)\n",
+				sw->sw_name, sw->sw_type);
+		return_string = NULL;
+		break;
+	}
   
-  if (return_string != NULL) {
-    output_sw = sw;
-    sprintf(command_str, "switch %s\n", output_sw->sw_name);
-  } else {
-    NULL_STRING(command_str);
-  }
+	if (return_string != NULL) {
+		output_sw = sw;
+		sprintf(command_str, "switch %s\n", output_sw->sw_name);
+	} else {
+		NULL_STRING(command_str);
+	}
   
-  PRINT_CMD();
+	PRINT_CMD();
   
-  return return_string;
+	return return_string;
 }
 
 
@@ -148,13 +148,13 @@ set_output_switch(sw)
  */
 FILE *
 set_switch_output_stream(stream)
-     FILE *stream;
+	FILE *stream;
 {
-  FILE *old_stream = sw_stream;
+	FILE *old_stream = sw_stream;
 
-  sw_stream = stream;
+	sw_stream = stream;
 
-  return old_stream;
+	return old_stream;
 }
 
 
@@ -164,7 +164,7 @@ set_switch_output_stream(stream)
 void
 sw_no_comments()
 {
-  do_comments = FALSE;
+	do_comments = FALSE;
 }
 
 
@@ -174,24 +174,24 @@ sw_no_comments()
  */
 char *
 sw_comment(comment, arg1, arg2, arg3, arg4, arg5, arg6)
-     char *comment;
-     char *arg1, *arg2, *arg3, *arg4, *arg5, *arg6;
+	char *comment;
+	char *arg1, *arg2, *arg3, *arg4, *arg5, *arg6;
 {
-  char tmp_buffer[MAX_SW_COMMAND_LENGTH];
+	char tmp_buffer[MAX_SW_COMMAND_LENGTH];
 
 
-  if (do_comments == FALSE) 
-    NULL_STRING(command_str);
+	if (do_comments == FALSE) 
+		NULL_STRING(command_str);
 
-  else {
-    sprintf(tmp_buffer,
-	    comment, arg1, arg2, arg3, arg4, arg5, arg6);
-    sprintf(command_str, "# %s", tmp_buffer);
-  }
+	else {
+		sprintf(tmp_buffer,
+				comment, arg1, arg2, arg3, arg4, arg5, arg6);
+		sprintf(command_str, "# %s", tmp_buffer);
+	}
 
-  PRINT_CMD();
+	PRINT_CMD();
 
-  return command_str;
+	return command_str;
 }
 
 
@@ -201,44 +201,45 @@ sw_comment(comment, arg1, arg2, arg3, arg4, arg5, arg6)
 char *
 disable_all_ports()
 {
-  PORT		*port;
-  int		portnum;
+	PORT		*port;
+	int			portnum;
 
-  NULL_STRING(command_str);
 
-  switch(SW_TYPE) {
+	NULL_STRING(command_str);
+
+	switch(SW_TYPE) {
     
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
     
     
-    FOR_EACH_PORT(output_sw->sw_ports, port, portnum) {
+		FOR_EACH_PORT(output_sw->sw_ports, port, portnum) {
 
-      if (port->swp_need_disabled == FALSE)
-	continue;
+			if (port->swp_need_disabled == FALSE)
+				continue;
 
-      switch(SMS_VERSION) {
-      case 1:
-	sprintfcat(command_str, "disable port %d\n", port->swp_num);
-	break;
+			switch(SMS_VERSION) {
+			case 1:
+				sprintfcat(command_str, "disable port %d\n", port->swp_num);
+				break;
 
-      case 2:
-	sprintf(command_str, "fset dpi\\n%d\n", port->swp_num);
-	break;
-      }
-    }	
-    break;
+			case 2:
+				sprintf(command_str, "fset dpi\\n%d\n", port->swp_num);
+				break;
+			}
+		}	
+		break;
 
-  default:
-    /** Not necessary **/
-    NULL_STRING(command_str);
-    break;
-  }
+	default:
+		/** Not necessary **/
+		NULL_STRING(command_str);
+		break;
+	}
 
-  PRINT_CMD();
+	PRINT_CMD();
 
-  return command_str;
+	return command_str;
 }
 
 
@@ -248,31 +249,31 @@ disable_all_ports()
 char *
 enable_all_ports()
 {
-  switch(SW_TYPE) {
+	switch(SW_TYPE) {
 	
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
-    switch(SMS_VERSION) {
-    case 1:
-      sprintf(command_str, "enable port all\n");
-      break;
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
+		switch(SMS_VERSION) {
+		case 1:
+			sprintf(command_str, "enable port all\n");
+			break;
 
-    case 2:
-      sprintf(command_str, "fset epa\n");
-      break;
-    }
-    break;
+		case 2:
+			sprintf(command_str, "fset epa\n");
+			break;
+		}
+		break;
 
-  default:
-    /** Not necessary **/
-    NULL_STRING(command_str);
-    break;
-  }
+	default:
+		/** Not necessary **/
+		NULL_STRING(command_str);
+		break;
+	}
 
-  PRINT_CMD();
+	PRINT_CMD();
 
-  return command_str;
+	return command_str;
 }
 
 
@@ -282,39 +283,39 @@ enable_all_ports()
 char *
 clear_all_pathways()
 {
-  switch(SW_TYPE) {
+	switch(SW_TYPE) {
 	
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
-    switch(SMS_VERSION) {
-    case 1:
-      sprintf(command_str, "clear pathway all\n");
-      break;
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
+		switch(SMS_VERSION) {
+		case 1:
+			sprintf(command_str, "clear pathway all\n");
+			break;
 
-    case 2:
-      sprintf(command_str, "fset cpa\n");
-      break;
-    }
-    break;
+		case 2:
+			sprintf(command_str, "fset cpa\n");
+			break;
+		}
+		break;
 
-  case HIPPISW_NETSTAR:
-    sprintf(command_str, "ifielde all = clear\n");
-    break;
+	case HIPPISW_NETSTAR:
+		sprintf(command_str, "ifielde all = clear\n");
+		break;
 
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-    sprintf(command_str, "clear path all\n");
-    break;
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+		sprintf(command_str, "clear path all\n");
+		break;
 
-  case HIPPISW_ES1:
-    sprintf(command_str, "set destination all invalid\n");
-    break;
-  }
+	case HIPPISW_ES1:
+		sprintf(command_str, "set destination all invalid\n");
+		break;
+	}
 
-  PRINT_CMD();
+	PRINT_CMD();
 
-  return command_str;
+	return command_str;
 }
 
 
@@ -324,39 +325,39 @@ clear_all_pathways()
 char *
 save_all_pathways()
 {
-  switch(SW_TYPE) {
+	switch(SW_TYPE) {
 	
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
-    switch(SMS_VERSION) {
-    case 1:
-      sprintf(command_str, "save pathway all\n");
-      break;
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
+		switch(SMS_VERSION) {
+		case 1:
+			sprintf(command_str, "save pathway all\n");
+			break;
 
-    case 2:
-      sprintf(command_str, "fset sapa\n");
-      break;
-    }
-    break;
+		case 2:
+			sprintf(command_str, "fset sapa\n");
+			break;
+		}
+		break;
 
-  case HIPPISW_NETSTAR:
-    sprintf(command_str, "ifieldw both\n");
-    break;
+	case HIPPISW_NETSTAR:
+		sprintf(command_str, "ifieldw both\n");
+		break;
 
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-    sprintf(command_str, "save path all\n");
-    break;
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+		sprintf(command_str, "save path all\n");
+		break;
 
-  case HIPPISW_ES1:
-    sprintf(command_str, "save destination\n");
-    break;
-  }
+	case HIPPISW_ES1:
+		sprintf(command_str, "save destination\n");
+		break;
+	}
 
-  PRINT_CMD();
+	PRINT_CMD();
 
-  return command_str;
+	return command_str;
 }
 
 
@@ -365,72 +366,72 @@ save_all_pathways()
  */
 char *
 set_pathway_all(address, portlist)
-     Logaddr		address;
-     PATH		*portlist;
+	Logaddr		address;
+	PATH		*portlist;
 {
-  PORT		*port;
-  int		portnum;
+	PORT		*port;
+	int			portnum;
   
   
-  switch(SW_TYPE) {
+	switch(SW_TYPE) {
     
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
-    switch(SMS_VERSION) {
-    case 1:
-      sprintf(command_str,
-	      "set pathway all  d %3.3x",
-	      address, port);
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
+		switch(SMS_VERSION) {
+		case 1:
+			sprintf(command_str,
+					"set pathway all  d %3.3x",
+					address, port);
       
-      FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
-	sprintfcat(command_str, " o %2d", port->swp_num);
+			FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
+				sprintfcat(command_str, " o %2d", port->swp_num);
       
-      sprintfcat(command_str, "\n");
+			sprintfcat(command_str, "\n");
 
-      break;
+			break;
 
-    case 2:
-      sprintf(command_str,
-	      "fset spa %3.3x", address);
+		case 2:
+			sprintf(command_str,
+					"fset spa %3.3x", address);
 
-      FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
-	sprintfcat(command_str, " %2d", port->swp_num);
+			FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
+				sprintfcat(command_str, " %2d", port->swp_num);
 
-      sprintfcat(command_str, "\n");
-      break;
-    }
-    break;
+			sprintfcat(command_str, "\n");
+			break;
+		}
+		break;
     
-  case HIPPISW_NETSTAR:
-    sprintf(command_str, "ifielde all %4d =", address);
+	case HIPPISW_NETSTAR:
+		sprintf(command_str, "ifielde all %4d =", address);
     
-    FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
-      sprintfcat(command_str, " %2d", port->swp_num);
+		FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
+			sprintfcat(command_str, " %2d", port->swp_num);
     
-    sprintfcat(command_str, "\n");
-    break;
+		sprintfcat(command_str, "\n");
+		break;
     
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-    sprintf(command_str,
-	    "set path all d %3.3x", address);
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+		sprintf(command_str,
+				"set path all d %3.3x", address);
     
-    FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
-      sprintfcat(command_str, " o %2d", port->swp_num);
+		FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
+			sprintfcat(command_str, " o %2d", port->swp_num);
     
-    sprintfcat(command_str, "\n");
-    break;
+		sprintfcat(command_str, "\n");
+		break;
     
-  case HIPPISW_ES1:
-    sprintf(command_str, "set destination %#3x to %2d allow\n",
-	    address, PRIMARY_PORT(portlist, address)->swp_num);
-    break;
-  }
+	case HIPPISW_ES1:
+		sprintf(command_str, "set destination %#3x to %2d allow\n",
+				address, PRIMARY_PORT(portlist, address)->swp_num);
+		break;
+	}
   
-  PRINT_CMD();
+	PRINT_CMD();
   
-  return command_str;
+	return command_str;
 }
 
 
@@ -439,76 +440,76 @@ set_pathway_all(address, portlist)
  */
 char *
 set_pathway(in_port, address, portlist)
-     int		in_port;
-     Logaddr		address;
-     PATH		*portlist;
+	int			in_port;
+	Logaddr		address;
+	PATH		*portlist;
 {
-  PORT		*port;
-  int		portnum;
+	PORT		*port;
+	int			portnum;
   
   
-  switch(SW_TYPE) {
+	switch(SW_TYPE) {
     
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
-    switch(SMS_VERSION) {
-    case 1:
-      sprintf(command_str,
-	      "set pathway i %2d d %3.3x",
-	      in_port, address);
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
+		switch(SMS_VERSION) {
+		case 1:
+			sprintf(command_str,
+					"set pathway i %2d d %3.3x",
+					in_port, address);
 
-      FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
-	sprintfcat(command_str, " o %2d", port->swp_num);
+			FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
+				sprintfcat(command_str, " o %2d", port->swp_num);
 
-      sprintfcat(command_str, "\n");
+			sprintfcat(command_str, "\n");
 
-      break;
+			break;
 
-    case 2:
-      sprintf(command_str, "fset spd %2d %3.3x",
-	      in_port, address);
+		case 2:
+			sprintf(command_str, "fset spd %2d %3.3x",
+					in_port, address);
 
-      FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
-	sprintfcat(command_str, " %2d", port->swp_num);
+			FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
+				sprintfcat(command_str, " %2d", port->swp_num);
 
-      sprintfcat(command_str, "\n");
+			sprintfcat(command_str, "\n");
 
-      break;
-    }
-    break;
+			break;
+		}
+		break;
 
-  case HIPPISW_NETSTAR:
-    sprintf(command_str, "ifielde %3d %4d =",
-	    in_port, address);
+	case HIPPISW_NETSTAR:
+		sprintf(command_str, "ifielde %3d %4d =",
+				in_port, address);
     
-    FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
-      sprintfcat(command_str, " %2d", port->swp_num);
+		FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
+			sprintfcat(command_str, " %2d", port->swp_num);
     
-    sprintfcat(command_str, "\n");
-    break;
+		sprintfcat(command_str, "\n");
+		break;
     
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-    sprintf(command_str, "set path i %2d d %3.3x",
-	    in_port, address);
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+		sprintf(command_str, "set path i %2d d %3.3x",
+				in_port, address);
     
-    FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
-      sprintfcat(command_str, " o %2d", port->swp_num);
+		FOR_EACH_PORT_IN_PATH(portlist, port, portnum)
+			sprintfcat(command_str, " o %2d", port->swp_num);
     
-    sprintfcat(command_str, "\n");
+		sprintfcat(command_str, "\n");
     
-    break;
+		break;
     
-  case HIPPISW_ES1:
-    /* Not supported ?!? */
-    NULL_STRING(command_str);
-    break;
-  }
+	case HIPPISW_ES1:
+		/* Not supported ?!? */
+		NULL_STRING(command_str);
+		break;
+	}
   
-  PRINT_CMD();
+	PRINT_CMD();
   
-  return command_str;
+	return command_str;
 }
 
 
@@ -517,41 +518,41 @@ set_pathway(in_port, address, portlist)
  */
 char *
 display_port_stats(port)
-     int port;
+	int port;
 {
-  switch(SW_TYPE) {
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
-    switch(SMS_VERSION) {
-    case 1:
-      sprintf(command_str, "d s i %2d\n", port);
-      break;
+	switch(SW_TYPE) {
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
+		switch(SMS_VERSION) {
+		case 1:
+			sprintf(command_str, "d s i %2d\n", port);
+			break;
 
-    case 2:
-      sprintf(command_str, "fd si \\n%d\n", port);
-      break;
-    }
-    break;
+		case 2:
+			sprintf(command_str, "fd si \\n%d\n", port);
+			break;
+		}
+		break;
 
-  case HIPPISW_NETSTAR:
-    sprintf(command_str, "counters %d\n", port);
-    break;
+	case HIPPISW_NETSTAR:
+		sprintf(command_str, "counters %d\n", port);
+		break;
 
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-    /* Not supported?!? */
-    NULL_STRING(command_str);
-    break;
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+		/* Not supported?!? */
+		NULL_STRING(command_str);
+		break;
 
-  case HIPPISW_ES1:
-    sprintf(command_str, "show counters %2d\n", port);
-    break;
-  }
+	case HIPPISW_ES1:
+		sprintf(command_str, "show counters %2d\n", port);
+		break;
+	}
 
-  PRINT_CMD();
+	PRINT_CMD();
 
-  return command_str;
+	return command_str;
 }
 
 
@@ -561,41 +562,41 @@ display_port_stats(port)
 char *
 display_switch_stats()
 {
-  switch(SW_TYPE) {
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
-    switch(SMS_VERSION) {
-    case 1:
-      sprintf(command_str, "d s a\n");
-      break;
+	switch(SW_TYPE) {
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
+		switch(SMS_VERSION) {
+		case 1:
+			sprintf(command_str, "d s a\n");
+			break;
 
-    case 2:
-      sprintf(command_str, "fd sa \n");
-      break;
-    }
-    break;
+		case 2:
+			sprintf(command_str, "fd sa \n");
+			break;
+		}
+		break;
 
 
-  case HIPPISW_NETSTAR:
-    sprintf(command_str, "counters all\n");
-    break;
+	case HIPPISW_NETSTAR:
+		sprintf(command_str, "counters all\n");
+		break;
 
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-    /* Not supported?!? */
-    NULL_STRING(command_str);
-    break;
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+		/* Not supported?!? */
+		NULL_STRING(command_str);
+		break;
 
-  case HIPPISW_ES1:
-    sprintf(command_str, "show counters all\n");
-    break;
+	case HIPPISW_ES1:
+		sprintf(command_str, "show counters all\n");
+		break;
 
-  }
+	}
 
-  PRINT_CMD();
+	PRINT_CMD();
 
-  return command_str;
+	return command_str;
 }
 
 
@@ -604,43 +605,43 @@ display_switch_stats()
  */
 char *
 clear_port_stats(port)
-int port;
+	int port;
 {
-  switch(SW_TYPE) {
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
-    switch(SMS_VERSION) {
-    case 1:
-      sprintf(command_str, "c s i %2d\n", port);
-      break;
+	switch(SW_TYPE) {
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
+		switch(SMS_VERSION) {
+		case 1:
+			sprintf(command_str, "c s i %2d\n", port);
+			break;
 
-    case 2:
-      sprintf(command_str, "fs csi %d\n", port);
-      break;
-    }
-    break;
+		case 2:
+			sprintf(command_str, "fs csi %d\n", port);
+			break;
+		}
+		break;
 
-  case HIPPISW_NETSTAR:
-    /* Anyway to clear without displaying? */
-    sprintf(command_str, "counters %d r\n", port);
-    break;
+	case HIPPISW_NETSTAR:
+		/* Anyway to clear without displaying? */
+		sprintf(command_str, "counters %d r\n", port);
+		break;
 
-  case HIPPISW_ES1:
-    sprintf(command_str, "set counters 0 %d\n", port);
-    break;
+	case HIPPISW_ES1:
+		sprintf(command_str, "set counters 0 %d\n", port);
+		break;
     
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-    /* Not supported */
-    NULL_STRING(command_str);
-    break;
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+		/* Not supported */
+		NULL_STRING(command_str);
+		break;
 
-  }
+	}
   
-  PRINT_CMD();
+	PRINT_CMD();
   
-  return command_str;
+	return command_str;
 }
 
 
@@ -650,40 +651,40 @@ int port;
 char *
 clear_switch_stats()
 {
-  switch(SW_TYPE) {
-  case HIPPISW_PS8:
-  case HIPPISW_PS4:
-  case HIPPISW_PS32:
-    switch(SMS_VERSION) {
-    case 1:
-      sprintf(command_str, "c s a\n");
-      break;
+	switch(SW_TYPE) {
+	case HIPPISW_PS8:
+	case HIPPISW_PS4:
+	case HIPPISW_PS32:
+		switch(SMS_VERSION) {
+		case 1:
+			sprintf(command_str, "c s a\n");
+			break;
 
-    case 2:
-      sprintf(command_str, "fs csa \n");
-      break;
-    }
-    break;
+		case 2:
+			sprintf(command_str, "fs csa \n");
+			break;
+		}
+		break;
 
-  case HIPPISW_NETSTAR:
-    sprintf(command_str, "counters all r\n");
-    break;
+	case HIPPISW_NETSTAR:
+		sprintf(command_str, "counters all r\n");
+		break;
 
-  case HIPPISW_ES1:
-    sprintf(command_str, "set counters 0 all\n");
-    break;
+	case HIPPISW_ES1:
+		sprintf(command_str, "set counters 0 all\n");
+		break;
     
-  case HIPPISW_IOSC4:
-  case HIPPISW_IOSC8:
-    /* Not supported */
-    NULL_STRING(command_str);
-    break;
+	case HIPPISW_IOSC4:
+	case HIPPISW_IOSC8:
+		/* Not supported */
+		NULL_STRING(command_str);
+		break;
 
-  }
+	}
 
-  PRINT_CMD();
+	PRINT_CMD();
 
-  return command_str;
+	return command_str;
 }
 
 
@@ -692,17 +693,17 @@ clear_switch_stats()
  */
 static char *
 sprintfcat(string, format, arg)
-char *string;
-char *format;
-char *arg;
+	char *string;
+	char *format;
+	char *arg;
 {
-  char buffer[BUFFERLEN];
+	char buffer[BUFFERLEN];
 
-  sprintf(buffer, format, arg);
+	sprintf(buffer, format, arg);
 
-  strcat(string, buffer);
+	strcat(string, buffer);
 
-  return string;
+	return string;
 }
 
 

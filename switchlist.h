@@ -14,8 +14,8 @@
 #include "switch.h"
 
 
-int		add_switch		PROTO((SWITCH *sw));
-int		number_of_switches    	PROTO((VOID));
+int			add_switch			PROTO((SWITCH *sw));
+int			number_of_switches  PROTO((VOID));
 void		free_switchlist		PROTO((VOID));
 SWITCH		*first_switch		PROTO((VOID));
 SWITCH		*next_switch		PROTO((SWITCH *sw));

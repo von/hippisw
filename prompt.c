@@ -13,18 +13,18 @@
 
 Boolean
 is_prompt(sw, string)
-     SWITCH			*sw;
-     char			*string;
+	SWITCH			*sw;
+	char			*string;
 {
     char **prompt;
 
     prompt = sw->sw_prompts;
 
     while (*prompt != NULL) {
-	if (is_prompt_string(string, *prompt))
-	    return TRUE;
+		if (is_prompt_string(string, *prompt))
+			return TRUE;
 
-	prompt++;
+		prompt++;
     }
 
     return FALSE;
@@ -34,16 +34,16 @@ is_prompt(sw, string)
 
 Boolean
 is_password_prompt(string)
-     char			*string;
+	char			*string;
 {
-  return is_prompt_string(string, PASSWORD_PROMPT);
+	return is_prompt_string(string, PASSWORD_PROMPT);
 }
 
 
 Boolean
 is_prompt_string(string, prompt)
-char			*string;
-char			*prompt;
+	char			*string;
+	char			*prompt;
 {
     int	start_point = strlen(string) - strlen(prompt);
     

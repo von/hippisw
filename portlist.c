@@ -19,38 +19,38 @@
  */
 PORTLIST *
 add_to_portlist(list, port)
-     PORTLIST		*list;
-     PORT		*port;
+	PORTLIST		*list;
+	PORT			*port;
 {
-  if (list == NULL) {
-    list = (PORTLIST *) malloc(sizeof(*list));
+	if (list == NULL) {
+		list = (PORTLIST *) malloc(sizeof(*list));
 
-    if (list == NULL)
-      return NULL;
+		if (list == NULL)
+			return NULL;
     
-    list->num_ports = 0;
-    list->ports = (PORT **) malloc(sizeof(PORT *));
+		list->num_ports = 0;
+		list->ports = (PORT **) malloc(sizeof(PORT *));
 
-  } else {
+	} else {
 
-    list->ports = (PORT **) realloc(list->ports,
-				    sizeof(PORT *) * (list->num_ports + 1));
-  }
+		list->ports = (PORT **) realloc(list->ports,
+										sizeof(PORT *) * (list->num_ports + 1));
+	}
 
-  if (list->ports == NULL)
-    return NULL;
+	if (list->ports == NULL)
+		return NULL;
   
-  list->ports[list->num_ports] = port;
-  list->num_ports++;
+	list->ports[list->num_ports] = port;
+	list->num_ports++;
   
 #ifdef DEBUG_PORTLIST
-  fprintf(stderr, "\tAdded %s to port list (%d total).\n",
-	  port->swp_name, list->num_ports);
+	fprintf(stderr, "\tAdded %s to port list (%d total).\n",
+			port->swp_name, list->num_ports);
 #endif
 
-  return list;
+	return list;
 }
-      
+
 
 /*
  *	Sort a list into increasing order by port number.
@@ -59,23 +59,23 @@ add_to_portlist(list, port)
 
 PORTLIST *
 sort_portlist(list)
-     PORTLIST		*list;
+	PORTLIST	*list;
 {
-  int		port1, port2;
-  PORT		*port;
+	int			port1, port2;
+	PORT		*port;
 
-  if (list == NULL)
-    return NULL;
+	if (list == NULL)
+		return NULL;
 
-  for (port1 = 0; port1 < list->num_ports; port1++)
-    for (port2 = port1 + 1; port2 < list->num_ports; port2++)
-      if (list->ports[port2]->swp_num < list->ports[port1]->swp_num) {
-	port = list->ports[port2];
-	list->ports[port2] = list->ports[port1];
-	list->ports[port1] = port;
-      }
+	for (port1 = 0; port1 < list->num_ports; port1++)
+		for (port2 = port1 + 1; port2 < list->num_ports; port2++)
+			if (list->ports[port2]->swp_num < list->ports[port1]->swp_num) {
+				port = list->ports[port2];
+				list->ports[port2] = list->ports[port1];
+				list->ports[port1] = port;
+			}
 
-  return list;
+	return list;
 }
 
 
@@ -85,38 +85,38 @@ sort_portlist(list)
 
 PORTLIST *
 append_portlist(list1, list2)
-     PORTLIST		*list1;
-     PORTLIST		*list2;
+	PORTLIST		*list1;
+	PORTLIST		*list2;
 {
-  int new_length, port_num;
+	int new_length, port_num;
 
-  if (list1 == NULL) {
-    list1 = (PORTLIST *) malloc(sizeof(*list1));
+	if (list1 == NULL) {
+		list1 = (PORTLIST *) malloc(sizeof(*list1));
 
-    if (list1 == NULL)
-      return NULL;
+		if (list1 == NULL)
+			return NULL;
 
-    list1->num_ports = 0;
-    list1->ports = NULL;
-  }
+		list1->num_ports = 0;
+		list1->ports = NULL;
+	}
 
-  if (list2 == NULL)
-    return list1;
+	if (list2 == NULL)
+		return list1;
   
-  new_length = list1->num_ports + list2->num_ports;
+	new_length = list1->num_ports + list2->num_ports;
 
-  if (list1->ports == NULL)
-    list1->ports = (PORT **) malloc(sizeof(PORT *) * new_length);
-  else
-    list1->ports = (PORT **) realloc(list1->ports,
-				     sizeof(PORT *) * new_length);
+	if (list1->ports == NULL)
+		list1->ports = (PORT **) malloc(sizeof(PORT *) * new_length);
+	else
+		list1->ports = (PORT **) realloc(list1->ports,
+										 sizeof(PORT *) * new_length);
 
-  for (port_num = list1->num_ports; port_num < new_length; port_num++)
-    list1->ports[port_num] = list2->ports[port_num - list1->num_ports];
+	for (port_num = list1->num_ports; port_num < new_length; port_num++)
+		list1->ports[port_num] = list2->ports[port_num - list1->num_ports];
 
-  list1->num_ports = new_length;
+	list1->num_ports = new_length;
 
-  return list1;
+	return list1;
 }
 
 
@@ -126,15 +126,15 @@ append_portlist(list1, list2)
  */
 void
 free_portlist(list)
-     PORTLIST		*list;
+	PORTLIST		*list;
 {
-  int		port;
+	int		port;
 
-  for (port = 0; port < list->num_ports; port++)
-    free(list->ports[port]);
+	for (port = 0; port < list->num_ports; port++)
+		free(list->ports[port]);
 
-  free(list->ports);
-  free(list);
+	free(list->ports);
+	free(list);
 }
 
 
@@ -143,10 +143,10 @@ free_portlist(list)
  */
 void
 disperse_portlist(list)
-     PORTLIST		*list;
+	PORTLIST		*list;
 {
-  free(list->ports);
-  free(list);
+	free(list->ports);
+	free(list);
 }
 
     
@@ -157,66 +157,66 @@ disperse_portlist(list)
 
 PORT *
 first_port(portlist, portnum)
-     PORTLIST		*portlist;
-     int		*portnum;
+	PORTLIST	*portlist;
+	int			*portnum;
 {
-  *portnum = 0;
+	*portnum = 0;
 
-  if (portlist == NULL)
-    return NULL;
+	if (portlist == NULL)
+		return NULL;
 
-  if (portlist->num_ports == 0)
-    return NULL;
+	if (portlist->num_ports == 0)
+		return NULL;
 
-  return portlist->ports[0];
+	return portlist->ports[0];
 }
 
 PORT *
 last_port(portlist, portnum)
-     PORTLIST		*portlist;
-     int		*portnum;
+	PORTLIST	*portlist;
+	int			*portnum;
 {
-  if (portlist == NULL)
-    return NULL;
+	if (portlist == NULL)
+		return NULL;
 
-  if (portlist->num_ports == 0)
-    return NULL;
+	if (portlist->num_ports == 0)
+		return NULL;
 
-  *portnum = portlist->num_ports - 1;
+	*portnum = portlist->num_ports - 1;
 
-  return portlist->ports[*portnum];
+	return portlist->ports[*portnum];
 }
 
 PORT *
 next_port(portlist, portnum)
-     PORTLIST		*portlist;
-     int		*portnum;
+	PORTLIST	*portlist;
+	int			*portnum;
 {
-  if (portlist == NULL)
-    return NULL;
+	if (portlist == NULL)
+		return NULL;
 
-  (*portnum)++;
+	(*portnum)++;
 
-  if ((*portnum) == portlist->num_ports)
-    return NULL;
+	if ((*portnum) == portlist->num_ports)
+		return NULL;
 
-  return (portlist->ports[*portnum]);
+	return (portlist->ports[*portnum]);
 }
 
 PORT *
 prev_port(portlist, portnum)
-     PORTLIST		*portlist;
-     int		*portnum;
+	PORTLIST	*portlist;
+	int			*portnum;
 {
-  if (portlist == NULL)
-    return NULL;
+	if (portlist == NULL)
+		return NULL;
 
-  (*portnum)--;
+	(*portnum)--;
 
-  if ((*portnum) < 0)
-    return NULL;
+	if ((*portnum) < 0)
+		return NULL;
 
-  return (portlist->ports[*portnum]);
+	return (portlist->ports[*portnum]);
 }
 
 
@@ -227,15 +227,15 @@ prev_port(portlist, portnum)
  */
 PORT *
 find_port_by_number(list, portnum)
-     PORTLIST		*list;
-     int		portnum;
+	PORTLIST	*list;
+	int			portnum;
 {
-  PORT			*port;
-  int			num;
+	PORT		*port;
+	int			num;
 
-  FOR_EACH_PORT(list, port, num)
-    if (port->swp_num == portnum)
-      return port;
+	FOR_EACH_PORT(list, port, num)
+		if (port->swp_num == portnum)
+			return port;
 
-  return NULL;
+	return NULL;
 }

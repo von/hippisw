@@ -23,17 +23,17 @@
  */
 char *
 netaddr_to_ascii(netaddr)
-     Netaddr		netaddr;
+	Netaddr		netaddr;
 {
-  static char str[HNAMELEN];
+	static char str[HNAMELEN];
   
-  sprintf(str, "%u.%u.%u.%u",
-	  (netaddr >> 24) & 0xff,
-	  (netaddr >> 16) & 0xff,
-	  (netaddr >> 8) & 0xff,
-	  (netaddr >> 0) & 0xff);
+	sprintf(str, "%u.%u.%u.%u",
+			(netaddr >> 24) & 0xff,
+			(netaddr >> 16) & 0xff,
+			(netaddr >> 8) & 0xff,
+			(netaddr >> 0) & 0xff);
   
-  return str;
+	return str;
 }
 
 /*
@@ -43,24 +43,24 @@ netaddr_to_ascii(netaddr)
  */
 char *
 netaddr_to_fullname(netaddr)
-     Netaddr		netaddr;
+	Netaddr			netaddr;
 {
-  struct hostent	*hinfo;
-  static char		str[HNAMELEN];
+	struct hostent	*hinfo;
+	static char		str[HNAMELEN];
 
-  hinfo = gethostbyaddr((char *) &netaddr, sizeof(netaddr), AF_INET);
+	hinfo = gethostbyaddr((char *) &netaddr, sizeof(netaddr), AF_INET);
 
-  if (hinfo == NULL) {	/* Punt */
-    sprintf(str, "%u.%u.%u.%u",
-	    (netaddr >> 24) & 0xff,
-	    (netaddr >> 16) & 0xff,
-	    (netaddr >> 8) & 0xff,
-	    (netaddr >> 0) & 0xff);
-  } else {
-    strncpy(str, hinfo->h_name, HNAMELEN);
-  }
+	if (hinfo == NULL) {	/* Punt */
+		sprintf(str, "%u.%u.%u.%u",
+				(netaddr >> 24) & 0xff,
+				(netaddr >> 16) & 0xff,
+				(netaddr >> 8) & 0xff,
+				(netaddr >> 0) & 0xff);
+	} else {
+		strncpy(str, hinfo->h_name, HNAMELEN);
+	}
 
-  return str;
+	return str;
 }
 
 /*
@@ -72,21 +72,21 @@ netaddr_to_fullname(netaddr)
  */
 Netaddr
 hostname_to_netaddr(name)
-     char		*name;
+	char			*name;
 {
-  Netaddr		addr;
-  struct hostent	*hinfo;
+	Netaddr			addr;
+	struct hostent	*hinfo;
   
-  if((addr = inet_addr(name)) == -1)	{
-    if (hinfo = gethostbyname(name))	{
-      bcopy(hinfo->h_addr, &addr, hinfo->h_length);
+	if((addr = inet_addr(name)) == -1)	{
+		if (hinfo = gethostbyname(name))	{
+			bcopy(hinfo->h_addr, &addr, hinfo->h_length);
     
-    } else {
-      addr = NETADDR_NULL;
-    }
-  }
+		} else {
+			addr = NETADDR_NULL;
+		}
+	}
 
-  return addr;
+	return addr;
 }
 
 /*
@@ -96,18 +96,18 @@ hostname_to_netaddr(name)
  */
 char *
 hostname_to_fullname(name)
-     char		*name;
+	char			*name;
 {
-  static char		fullname[HNAMELEN];
-  struct hostent	*hinfo;
+	static char		fullname[HNAMELEN];
+	struct hostent	*hinfo;
 
-  if ((hinfo = gethostbyname(name)) != NULL)
-    strncpy(fullname, hinfo->h_name, HNAMELEN);
+	if ((hinfo = gethostbyname(name)) != NULL)
+		strncpy(fullname, hinfo->h_name, HNAMELEN);
 
-  else
-    strncpy(fullname, name, HNAMELEN);
+	else
+		strncpy(fullname, name, HNAMELEN);
 
-  return fullname;
+	return fullname;
 }
 
 
@@ -121,26 +121,26 @@ hostname_to_fullname(name)
  */
 int
 handle_hippi_addr(name, netaddr)
-     char		*name;
-     Netaddr		*netaddr;
+	char		*name;
+	Netaddr		*netaddr;
 {
-  Netaddr		addr;
+	Netaddr		addr;
 
-  if (sscanf(name, "hippi-%d", &addr) == 1) {
+	if (sscanf(name, "hippi-%d", &addr) == 1) {
 
-    /* Check for illegal value. */
-    if ((addr < 1) || (addr > 254))
-      return ERROR;
+		/* Check for illegal value. */
+		if ((addr < 1) || (addr > 254))
+			return ERROR;
 
-    *netaddr = addr + addr_config.hippi_network;
+		*netaddr = addr + addr_config.hippi_network;
 
-    strcpy(name, netaddr_to_ascii(*netaddr));
+		strcpy(name, netaddr_to_ascii(*netaddr));
 
-  } else {
+	} else {
 
-    netaddr = NETADDR_NULL;
-  }
+		netaddr = NETADDR_NULL;
+	}
 
-  return NO_ERROR;
+	return NO_ERROR;
 }
 

@@ -16,8 +16,8 @@
 #include <string.h>
 
 static Boolean string_match	PROTO((char *string1, 
-				       char *string2, 
-				       int flags));
+								   char *string2, 
+								   int flags));
 
 
 /*

@@ -13,21 +13,21 @@
 
 char *
 time_string(clock)
-     time_t		*clock;
+	time_t			*clock;
 {
-  time_t		current_time;
-  struct tm		*tm;
-  static char		time_buffer[TIMELEN];
+	time_t			current_time;
+	struct tm		*tm;
+	static char		time_buffer[TIMELEN];
 
 
-  if (clock == CURRENT_TIME) {
-    current_time = time(NULL);
-    clock = &current_time;
-  }
+	if (clock == CURRENT_TIME) {
+		current_time = time(NULL);
+		clock = &current_time;
+	}
 
-  tm = localtime(clock);
+	tm = localtime(clock);
 
-  strftime(time_buffer, TIMELEN, "%D %T", tm);
+	strftime(time_buffer, TIMELEN, "%D %T", tm);
 
-  return time_buffer;
+	return time_buffer;
 }

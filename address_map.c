@@ -23,100 +23,100 @@ static ADDRESS_MAP	*map = NULL;
  */
 int
 add_address_map(hostname, logaddr, port, comment)
-     char		*hostname;
-     Logaddr		logaddr;
-     PORT		*port;
-     char		*comment;
+	char		*hostname;
+	Logaddr		logaddr;
+	PORT		*port;
+	char		*comment;
 {
-  ADDRESS_MAP		*entry = map, *add_point = NULL, *new_entry;
-  Netaddr		netaddr = NETADDR_NULL;
-  Boolean		duplicate_ip = FALSE, duplicate_logaddr = FALSE;
+	ADDRESS_MAP	*entry = map, *add_point = NULL, *new_entry;
+	Netaddr		netaddr = NETADDR_NULL;
+	Boolean		duplicate_ip = FALSE, duplicate_logaddr = FALSE;
 
 
-  if (legal_logical_addr(logaddr) == FALSE)
-    return ADD_ADDRESS_LA_ILLEGAL;
+	if (legal_logical_addr(logaddr) == FALSE)
+		return ADD_ADDRESS_LA_ILLEGAL;
 
-  if (hostname == NULL) {
-    hostname = port->swp_name;
+	if (hostname == NULL) {
+		hostname = port->swp_name;
 
-  } else {
-    netaddr = hostname_to_netaddr(hostname);
+	} else {
+		netaddr = hostname_to_netaddr(hostname);
 
-    if (netaddr == NETADDR_NULL)
-      return ADD_ADDRESS_HOST_UNKNOWN;
-  }
+		if (netaddr == NETADDR_NULL)
+			return ADD_ADDRESS_HOST_UNKNOWN;
+	}
 
-  if (comment == NULL) {
-    comment = port->swp_name;
-  }
+	if (comment == NULL) {
+		comment = port->swp_name;
+	}
 
-  /*
-   *	Transverse list looking for duplicate IP or logical address.
-   *	add_point will be left pointing at entry that the new_entry
-   *	should follow.
-   */
-  while (entry != NULL) {
-    if (logaddr >= entry->logaddr)
-      add_point = entry;
+	/*
+	 *	Transverse list looking for duplicate IP or logical address.
+	 *	add_point will be left pointing at entry that the new_entry
+	 *	should follow.
+	 */
+	while (entry != NULL) {
+		if (logaddr >= entry->logaddr)
+			add_point = entry;
 
-    /*	If it's the same logical address pointing at different ports
-     *	then it's like completely bogus.
-     *	If it's the same logical addres point at the same port, mark
-     *	it as a duplicate.
-     */
-    if (logaddr == entry->logaddr) {
-      if (port == entry->port)
-	duplicate_logaddr = TRUE;
-      else
-	return ADD_ADDRESS_LA_DUP;
-    }
+		/*	If it's the same logical address pointing at different ports
+		 *	then it's like completely bogus.
+		 *	If it's the same logical addres point at the same port, mark
+		 *	it as a duplicate.
+		 */
+		if (logaddr == entry->logaddr) {
+			if (port == entry->port)
+				duplicate_logaddr = TRUE;
+			else
+				return ADD_ADDRESS_LA_DUP;
+		}
 
-    /* If it's the same IP address pointing at different logical
-     * addresses then it's bad.
-     * If it's the same IP address and same logical address, then
-     * see if the hostnames are identical. If they are then ignore
-     * the new entry, otherwise add it but mark it as a funcitional
-     * duplicate.
-     */
-    if ((netaddr != NETADDR_NULL) && (netaddr == entry->netaddr)) {
-      if (logaddr != entry->logaddr)
-	return ADD_ADDRESS_IP_DUP;
+		/* If it's the same IP address pointing at different logical
+		 * addresses then it's bad.
+		 * If it's the same IP address and same logical address, then
+		 * see if the hostnames are identical. If they are then ignore
+		 * the new entry, otherwise add it but mark it as a funcitional
+		 * duplicate.
+		 */
+		if ((netaddr != NETADDR_NULL) && (netaddr == entry->netaddr)) {
+			if (logaddr != entry->logaddr)
+				return ADD_ADDRESS_IP_DUP;
 
-      /* Is it a complete duplicate? */
-      if (strcmp(hostname, entry->hostname) == 0)
+			/* Is it a complete duplicate? */
+			if (strcmp(hostname, entry->hostname) == 0)
+				return NO_ERROR;
+			else
+				duplicate_ip = TRUE;
+		}
+
+		entry = entry->next_map;
+	}
+
+	/*
+	 * At this point we know we have a legal mapping, so add it.
+	 */
+	new_entry = (ADDRESS_MAP *) malloc(sizeof(*new_entry));
+
+	if (new_entry == NULL)
+		return ADD_ADDRESS_MALLOC_ERROR;
+
+	strncpy(new_entry->hostname, hostname, HNAMELEN);
+	strncpy(new_entry->comment, comment, COMMENTLEN);
+	new_entry->netaddr = netaddr;
+	new_entry->logaddr = logaddr;
+	new_entry->port = port;
+	new_entry->duplicate_ip = duplicate_ip;
+	new_entry->duplicate_logaddr = duplicate_logaddr;
+
+	if (add_point == NULL) {
+		new_entry->next_map = map;
+		map = new_entry;
+	} else {
+		new_entry->next_map = add_point->next_map;
+		add_point->next_map = new_entry;
+	}
+
 	return NO_ERROR;
-      else
-	duplicate_ip = TRUE;
-    }
-
-    entry = entry->next_map;
-  }
-
-  /*
-   * At this point we know we have a legal mapping, so add it.
-   */
-  new_entry = (ADDRESS_MAP *) malloc(sizeof(*new_entry));
-
-  if (new_entry == NULL)
-    return ADD_ADDRESS_MALLOC_ERROR;
-
-  strncpy(new_entry->hostname, hostname, HNAMELEN);
-  strncpy(new_entry->comment, comment, COMMENTLEN);
-  new_entry->netaddr = netaddr;
-  new_entry->logaddr = logaddr;
-  new_entry->port = port;
-  new_entry->duplicate_ip = duplicate_ip;
-  new_entry->duplicate_logaddr = duplicate_logaddr;
-
-  if (add_point == NULL) {
-    new_entry->next_map = map;
-    map = new_entry;
-  } else {
-    new_entry->next_map = add_point->next_map;
-    add_point->next_map = new_entry;
-  }
-
-  return NO_ERROR;
 }
 
 
@@ -125,18 +125,18 @@ add_address_map(hostname, logaddr, port, comment)
  */
 LOGICAL_MAP *
 find_map_by_logaddr(logaddr)
-     Logaddr		logaddr;
+	Logaddr		logaddr;
 {
-  ADDRESS_MAP		*entry = map;
+	ADDRESS_MAP		*entry = map;
 
-  while (entry != NULL) {
-    if (entry->logaddr == logaddr)
-      return entry;
+	while (entry != NULL) {
+		if (entry->logaddr == logaddr)
+			return entry;
 
-    entry = entry->next_map;
-  }
+		entry = entry->next_map;
+	}
 
-  return NULL;
+	return NULL;
 }
 
 
@@ -146,18 +146,18 @@ find_map_by_logaddr(logaddr)
  */
 HOST_MAP *
 find_map_by_netaddr(netaddr)
-     Netaddr		netaddr;
+	Netaddr		netaddr;
 {
-  ADDRESS_MAP		*entry = map;
+	ADDRESS_MAP		*entry = map;
 
-  while (entry != NULL) {
-    if (entry->netaddr == netaddr)
-      return entry;
+	while (entry != NULL) {
+		if (entry->netaddr == netaddr)
+			return entry;
 
-    entry = entry->next_map;
-  }
+		entry = entry->next_map;
+	}
 
-  return NULL;
+	return NULL;
 }
 
 
@@ -171,31 +171,31 @@ static ADDRESS_MAP *current_host_map = NULL;
 HOST_MAP *
 first_host_map()
 {
-  current_host_map = map;
+	current_host_map = map;
 
-  return next_host_map();
+	return next_host_map();
 }
 
 HOST_MAP *
 next_host_map()
 {
-  HOST_MAP	*entry;
+	HOST_MAP	*entry;
 
-  if (current_host_map == NULL)
-    return NULL;
+	if (current_host_map == NULL)
+		return NULL;
 
-  while (current_host_map->netaddr == NETADDR_NULL) {
-     current_host_map = current_host_map->next_map;
+	while (current_host_map->netaddr == NETADDR_NULL) {
+		current_host_map = current_host_map->next_map;
 
-     if (current_host_map == NULL)
-       return NULL;
-   }
+		if (current_host_map == NULL)
+			return NULL;
+	}
 
-  entry = current_host_map;
+	entry = current_host_map;
 
-  current_host_map = current_host_map->next_map;
+	current_host_map = current_host_map->next_map;
 
-  return entry;
+	return entry;
 }
 
 
@@ -210,33 +210,33 @@ static PORT *current_port = NULL;
 
 LOGICAL_MAP *
 first_logical_map(port)
-     PORT		*port;
+	PORT		*port;
 {
-  current_logical_map = map;
-  current_port = port;
+	current_logical_map = map;
+	current_port = port;
 
-  return next_logical_map();
+	return next_logical_map();
 }
 
 LOGICAL_MAP *
 next_logical_map()
 {
-  LOGICAL_MAP *entry;
+	LOGICAL_MAP *entry;
 
-  if (current_logical_map == NULL)
-    return NULL;
+	if (current_logical_map == NULL)
+		return NULL;
 
-  if (current_port != NULL)
-    while (current_logical_map->port != current_port) {
-      current_logical_map = current_logical_map->next_map;
+	if (current_port != NULL)
+		while (current_logical_map->port != current_port) {
+			current_logical_map = current_logical_map->next_map;
 
-      if (current_logical_map == NULL)
-	return NULL;
-    }
+			if (current_logical_map == NULL)
+				return NULL;
+		}
 
-  entry = current_logical_map;
+	entry = current_logical_map;
 
-  current_logical_map = current_logical_map->next_map;
+	current_logical_map = current_logical_map->next_map;
 
-  return entry;
+	return entry;
 }

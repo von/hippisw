@@ -13,21 +13,21 @@
 
 
 struct portlist {
-  int		num_ports;
-  PORT		**ports;
+	int			num_ports;
+	PORT		**ports;
 };
 
 typedef	struct portlist	PORTLIST;
 
-PORTLIST	*add_to_portlist	PROTO((PORTLIST *list, PORT *port));
-PORTLIST	*sort_portlist		PROTO((PORTLIST *list));
-PORTLIST	*append_portlist	PROTO((PORTLIST *list1, PORTLIST *list2));
-void		free_portlist		PROTO((PORTLIST *list));
-void		disperse_portlist	PROTO((PORTLIST *list));
-PORT		*first_port		PROTO((PORTLIST *list, int *portnum));
-PORT		*next_port		PROTO((PORTLIST *list, int *portnum));
-PORT		*last_port		PROTO((PORTLIST *list, int *portnum));
-PORT		*prev_port		PROTO((PORTLIST *list, int *portnum));
+PORTLIST	*add_to_portlist		PROTO((PORTLIST *list, PORT *port));
+PORTLIST	*sort_portlist			PROTO((PORTLIST *list));
+PORTLIST	*append_portlist		PROTO((PORTLIST *list1, PORTLIST *list2));
+void		free_portlist			PROTO((PORTLIST *list));
+void		disperse_portlist		PROTO((PORTLIST *list));
+PORT		*first_port				PROTO((PORTLIST *list, int *portnum));
+PORT		*next_port				PROTO((PORTLIST *list, int *portnum));
+PORT		*last_port				PROTO((PORTLIST *list, int *portnum));
+PORT		*prev_port				PROTO((PORTLIST *list, int *portnum));
 PORT		*find_port_by_number	PROTO((PORTLIST *list, int portnum));
 
 #define	FOR_EACH_PORT(portlist, port, portnum)	\

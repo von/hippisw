@@ -16,9 +16,9 @@
  */
 Ifield
 logical_to_ifield(logaddr)
-     Logaddr		logaddr;
+	Logaddr		logaddr;
 {
-  return (Ifield) (logaddr | addr_config.mode_bits);
+	return (Ifield) (logaddr | addr_config.mode_bits);
 }
 
 
@@ -27,12 +27,12 @@ logical_to_ifield(logaddr)
  */
 Boolean
 legal_logical_addr(logaddr)
-     Logaddr		logaddr;
+	Logaddr		logaddr;
 {
-  if ((logaddr < 0x0) || (logaddr > LOGADDR_MAX))
-    return FALSE;
+	if ((logaddr < 0x0) || (logaddr > LOGADDR_MAX))
+		return FALSE;
 
-  return TRUE;
+	return TRUE;
 }
 
 
@@ -41,10 +41,10 @@ legal_logical_addr(logaddr)
  */
 Boolean
 legal_mode_bits(mode_bits)
-     Logaddr		mode_bits;
+	Logaddr		mode_bits;
 {
-  if ((mode_bits < 0x0) || (mode_bits > 0xff))
-    return FALSE;
+	if ((mode_bits < 0x0) || (mode_bits > 0xff))
+		return FALSE;
 
-  return TRUE;
+	return TRUE;
 }

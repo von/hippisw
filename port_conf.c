@@ -20,21 +20,21 @@
 #include <string.h>
 
 
-static int scan_host			PROTO((PORT *port));
-static int scan_null			PROTO((PORT *port));
-static int scan_link			PROTO((PORT *port));
-static int scan_device			PROTO((PORT *port));
+static int scan_host				PROTO((PORT *port));
+static int scan_null				PROTO((PORT *port));
+static int scan_link				PROTO((PORT *port));
+static int scan_device				PROTO((PORT *port));
 
 static Boolean handle_port_options	PROTO((PORT *port,
-					       char *option));
-static void handle_addr			PROTO((PORT *port));
-static void handle_addhost		PROTO((PORT *port));
-static void handle_default		PROTO((PORT *port));
+										   char *option));
+static void handle_addr				PROTO((PORT *port));
+static void handle_addhost			PROTO((PORT *port));
+static void handle_default			PROTO((PORT *port));
 
-static int handle_add_map		PROTO((char *hostname,
-					       Logaddr logaddr,
-					       PORT *port,
-					       char *comment));
+static int handle_add_map			PROTO((char *hostname,
+										   Logaddr logaddr,
+										   PORT *port,
+										   char *comment));
 static Netaddr parse_hostname		PROTO((char *hostname));
 
 
@@ -49,62 +49,62 @@ static Netaddr parse_hostname		PROTO((char *hostname));
  *	Keywords
  */
 enum option_values {
-  OPTION_ADDR,
-  OPTION_ADDHOST,
-  OPTION_MTU,
-  OPTION_COMMENT,
-  OPTION_DEFAULT,
-  OPTION_NEED_DISABLED,
-  OPTION_TESTER,
-  HOSTOPT_DEV,
-  HOSTOPT_BOARD,
-  LINKOPT_DEFAULT,
-  LINKOPT_METRIC
+	OPTION_ADDR,
+	OPTION_ADDHOST,
+	OPTION_MTU,
+	OPTION_COMMENT,
+	OPTION_DEFAULT,
+	OPTION_NEED_DISABLED,
+	OPTION_TESTER,
+	HOSTOPT_DEV,
+	HOSTOPT_BOARD,
+	LINKOPT_DEFAULT,
+	LINKOPT_METRIC
 };
 
 static struct token_mapping port_types[] = {
-  { "null",		HIPPI_NULL },
-  { "device",		HIPPI_DEVICE },
-  { "link",		HIPPI_LINK },
-  { "host",		HIPPI_HOST },
-  { "dx",		HIPPI_DX },
-  { "cntfddi",		HIPPI_CNT },
-  { "tester",		HIPPI_TESTER },
-  { NULL, 		0 }
+	{ "null",			HIPPI_NULL },
+	{ "device",			HIPPI_DEVICE },
+	{ "link",			HIPPI_LINK },
+	{ "host",			HIPPI_HOST },
+	{ "dx",				HIPPI_DX },
+	{ "cntfddi",		HIPPI_CNT },
+	{ "tester",			HIPPI_TESTER },
+	{ NULL, 0 }
 };
 
 static struct token_mapping port_options[] = {
-  { "comment",		OPTION_COMMENT },
-  { "needdisabled",	OPTION_NEED_DISABLED },
-  { NULL,		0 }
+	{ "comment",		OPTION_COMMENT },
+	{ "needdisabled",	OPTION_NEED_DISABLED },
+	{ NULL,	0 }
 };
 
 static struct token_mapping non_link_options[] = {
-   { "addr",		OPTION_ADDR },
-   { "tester",		OPTION_TESTER },
-   { "default",		OPTION_DEFAULT},
-   { NULL,		0}
- };
+	{ "addr",			OPTION_ADDR },
+	{ "tester",			OPTION_TESTER },
+	{ "default",		OPTION_DEFAULT},
+	{ NULL,	0}
+};
 
 static struct token_mapping host_options[] = {
-  { "addhost",		OPTION_ADDHOST },
-  { "mtu",		OPTION_MTU },
-  { "dev",		HOSTOPT_DEV },
-  { "board",		HOSTOPT_BOARD },
-  { NULL,		0 }
+	{ "addhost",		OPTION_ADDHOST },
+	{ "mtu",			OPTION_MTU },
+	{ "dev",			HOSTOPT_DEV },
+	{ "board",			HOSTOPT_BOARD },
+	{ NULL,	0 }
 };
 
 static struct token_mapping null_options[] = {
-  { NULL,		0}
+	{ NULL,	0}
 };
 
 static struct token_mapping link_options[] = {
-  { "metric",		LINKOPT_METRIC },
-  { NULL,		0 }
+	{ "metric",			LINKOPT_METRIC },
+	{ NULL,	0 }
 };
 
 static struct token_mapping device_options[] = {
-  { NULL,		0 }
+	{ NULL,	0 }
 };
 
 
@@ -113,118 +113,118 @@ static struct token_mapping device_options[] = {
  */
 void
 port_conf(sw, width)
-     SWITCH		*sw;
-     int		width;
+	SWITCH		*sw;
+	int			width;
 {
-  PORT		*port;
-  PORT		*duplicate_port;
+	PORT		*port;
+	PORT		*duplicate_port;
 
-  char		*port_type;
-  char		*number_str;
-  int		type;
+	char		*port_type;
+	char		*number_str;
+	int			type;
 
-  int		rc;
-
-
-  number_str = read_option();
-  port_type = read_option();
-
-  if ((number_str == NULL) || (port_type == NULL)) {
-    config_error("Port number and type required for port. Skipping.\n");
-    next_keyword();
-    return;
-  }
-
-  if (is_numeric(number_str) == FALSE) {
-    config_error("Port number \"%s\" is not a legal port number. Skipping.\n",
-		 number_str);
-    next_keyword();
-    return;
-  }
-
-  if ((type = parse_token(port_type, port_types)) == TOKEN_NOT_FOUND) {
-    config_error("Port type \"%s\" not recognized.\n", port_type);
-    type = HIPPI_NULL;
-  }
-
-  port = (PORT *) malloc(sizeof(*port));
-
-  if (port == NULL) {
-    config_error("malloc() failed. Exiting.\n");
-    exit(1);
-  }
-
-  /*
-   *	Tester is just a device
-   */
-  if (type == HIPPI_TESTER) {
-    type = HIPPI_DEVICE;	
-    port->swp_tester = TRUE;
-  } else {
-    port->swp_tester = FALSE;
-  }
-
-  port->swp_switch = sw;
-  port->swp_num = str_to_int(number_str);
-  port->swp_width = width;
-  port->swp_linenum = parsed_linenumber();
-  port->swp_type = type;
-  NULL_STRING(port->swp_comment);
-  port->swp_default_logaddr = LOGADDR_NOT_ASSIGNED;
-  port->swp_need_disabled = FALSE;
+	int			rc;
 
 
-  switch(type) {
-  case HIPPI_NULL:
-    rc = scan_null(port);
-    break;
+	number_str = read_option();
+	port_type = read_option();
 
-  case HIPPI_DEVICE:
-    rc = scan_device(port);
-    break;
+	if ((number_str == NULL) || (port_type == NULL)) {
+		config_error("Port number and type required for port. Skipping.\n");
+		next_keyword();
+		return;
+	}
 
-  case HIPPI_LINK:
-    rc = scan_link(port);
-    break;
+	if (is_numeric(number_str) == FALSE) {
+		config_error("Port number \"%s\" is not a legal port number. Skipping.\n",
+					 number_str);
+		next_keyword();
+		return;
+	}
 
-  case HIPPI_HOST:
-  case HIPPI_DX:
-  case HIPPI_CNT:
-    rc = scan_host(port);
-    break;
-  }
+	if ((type = parse_token(port_type, port_types)) == TOKEN_NOT_FOUND) {
+		config_error("Port type \"%s\" not recognized.\n", port_type);
+		type = HIPPI_NULL;
+	}
 
-  if (rc == ERROR) {
-    free(port);
-    return;
-  }
+	port = (PORT *) malloc(sizeof(*port));
+
+	if (port == NULL) {
+		config_error("malloc() failed. Exiting.\n");
+		exit(1);
+	}
+
+	/*
+	 *	Tester is just a device
+	 */
+	if (type == HIPPI_TESTER) {
+		type = HIPPI_DEVICE;	
+		port->swp_tester = TRUE;
+	} else {
+		port->swp_tester = FALSE;
+	}
+
+	port->swp_switch = sw;
+	port->swp_num = str_to_int(number_str);
+	port->swp_width = width;
+	port->swp_linenum = parsed_linenumber();
+	port->swp_type = type;
+	NULL_STRING(port->swp_comment);
+	port->swp_default_logaddr = LOGADDR_NOT_ASSIGNED;
+	port->swp_need_disabled = FALSE;
+
+
+	switch(type) {
+	case HIPPI_NULL:
+		rc = scan_null(port);
+		break;
+
+	case HIPPI_DEVICE:
+		rc = scan_device(port);
+		break;
+
+	case HIPPI_LINK:
+		rc = scan_link(port);
+		break;
+
+	case HIPPI_HOST:
+	case HIPPI_DX:
+	case HIPPI_CNT:
+		rc = scan_host(port);
+		break;
+	}
+
+	if (rc == ERROR) {
+		free(port);
+		return;
+	}
   
-  /*
-   * Check for duplicate port number.
-   */
-  duplicate_port = find_port_by_number(sw->sw_ports, port->swp_num);
+	/*
+	 * Check for duplicate port number.
+	 */
+	duplicate_port = find_port_by_number(sw->sw_ports, port->swp_num);
 
-  if (duplicate_port != NULL) {
-    config_error("Port number %d on switch %s already assigned to %s on line %d. Ignoring.\n",
-		 port->swp_num, port->swp_switch,
-		 duplicate_port->swp_name, duplicate_port->swp_linenum);
-    free(port);
-    return;
-  }
+	if (duplicate_port != NULL) {
+		config_error("Port number %d on switch %s already assigned to %s on line %d. Ignoring.\n",
+					 port->swp_num, port->swp_switch,
+					 duplicate_port->swp_name, duplicate_port->swp_linenum);
+		free(port);
+		return;
+	}
 
-  sw->sw_ports = add_to_portlist(sw->sw_ports, port);
+	sw->sw_ports = add_to_portlist(sw->sw_ports, port);
  
-  if (port->swp_default_logaddr == LOGADDR_NOT_ASSIGNED)
-    port->swp_default_logaddr = get_default_logical(port);
+	if (port->swp_default_logaddr == LOGADDR_NOT_ASSIGNED)
+		port->swp_default_logaddr = get_default_logical(port);
 
-  if (port->swp_default_logaddr != LOGADDR_NULL) {	
-    if (HAS_IP(port))
-      handle_ip_logical(port->swp_name, port->swp_default_logaddr, port);
-    else
-      handle_logical_port(port->swp_default_logaddr, port, port->swp_name);
-  }
+	if (port->swp_default_logaddr != LOGADDR_NULL) {	
+		if (HAS_IP(port))
+			handle_ip_logical(port->swp_name, port->swp_default_logaddr, port);
+		else
+			handle_logical_port(port->swp_default_logaddr, port, port->swp_name);
+	}
 
-  return;
+	return;
 }
     
 
@@ -240,124 +240,125 @@ port_conf(sw, width)
  */
 static int
 scan_host(port)
-     PORT		*port;
+	PORT		*port;
 {
-  char		*option, *name;
-  char		*argument, *argument2;
+	char		*option, *name;
+	char		*argument, *argument2;
 
-  int		token;
+	int			token;
 
-  Netaddr	netaddr;
+	Netaddr		netaddr;
 
-  port->swp_name = port->host_name;
+
+	port->swp_name = port->host_name;
   
-  name = read_option();
+	name = read_option();
 
-  if (name == NULL) {
-    config_error("Host has no name. Ignoring.\n");
-    return ERROR;
-  }
+	if (name == NULL) {
+		config_error("Host has no name. Ignoring.\n");
+		return ERROR;
+	}
 
-  strncpy(port->swp_name, name, HNAMELEN);
+	strncpy(port->swp_name, name, HNAMELEN);
   
-  netaddr = parse_hostname(port->swp_name);
+	netaddr = parse_hostname(port->swp_name);
   
-  port->host_addr = netaddr;	
+	port->host_addr = netaddr;	
 
 
-  /*
-   *	Set Defaults
-   */
-  port->cray_idev = NO_DEVICE_NUMBER;
-  port->cray_odev = NO_DEVICE_NUMBER;
-  port->giga_board_num = NO_DEVICE_NUMBER;
-  port->host_mtu = HIPPI_MTU;
-  NULL_STRING(port->host_ifname);
+	/*
+	 *	Set Defaults
+	 */
+	port->cray_idev = NO_DEVICE_NUMBER;
+	port->cray_odev = NO_DEVICE_NUMBER;
+	port->giga_board_num = NO_DEVICE_NUMBER;
+	port->host_mtu = HIPPI_MTU;
+	NULL_STRING(port->host_ifname);
 
-  /*
-   *	Read options
-   */
-  while ((option = read_option()) != NULL) {
+	/*
+	 *	Read options
+	 */
+	while ((option = read_option()) != NULL) {
 
-    if (handle_port_options(port, option) == TRUE)
-      continue;
+		if (handle_port_options(port, option) == TRUE)
+			continue;
 
-    if ((token = parse_token(option, host_options)) == TOKEN_NOT_FOUND) {
-      config_error("\"%s\" is not a recognized option. Skipping.\n", option);
-      continue;
-    }
+		if ((token = parse_token(option, host_options)) == TOKEN_NOT_FOUND) {
+			config_error("\"%s\" is not a recognized option. Skipping.\n", option);
+			continue;
+		}
 
-    switch(token) {
-    case OPTION_ADDHOST:
-      handle_addhost(port);
-      break;
+		switch(token) {
+		case OPTION_ADDHOST:
+			handle_addhost(port);
+			break;
 
-    case OPTION_MTU:
-      if ((argument = read_option()) == NULL) {
-	config_error("Argument missing for MTU options.\n");
-	break;
-      }
+		case OPTION_MTU:
+			if ((argument = read_option()) == NULL) {
+				config_error("Argument missing for MTU options.\n");
+				break;
+			}
       
-      if (is_numeric(argument) == FALSE) {
-	config_error("Numeric argument required for MTU option.\n");
-	break;
-      }
+			if (is_numeric(argument) == FALSE) {
+				config_error("Numeric argument required for MTU option.\n");
+				break;
+			}
 
-      port->host_mtu = str_to_int(argument);
-      break;
+			port->host_mtu = str_to_int(argument);
+			break;
 
-    case HOSTOPT_DEV:
-      argument = read_option();
-      argument2 = read_option();
+		case HOSTOPT_DEV:
+			argument = read_option();
+			argument2 = read_option();
 
-      if (port->swp_type != HIPPI_HOST) {
-	config_error("Dev option only valid for HIPPI hosts.\n");
-	break;
-      }
+			if (port->swp_type != HIPPI_HOST) {
+				config_error("Dev option only valid for HIPPI hosts.\n");
+				break;
+			}
 
-      if ((argument == NULL) || (argument2 == NULL)) {
-	config_error("Input and output device numbers required for dev option.\n");
-	break;
-      }
+			if ((argument == NULL) || (argument2 == NULL)) {
+				config_error("Input and output device numbers required for dev option.\n");
+				break;
+			}
 
-      if (is_numeric(argument) == FALSE) {
-	config_error("\"%s\" is not a valid numeric argument.\n", argument);
-	break;
-      }
+			if (is_numeric(argument) == FALSE) {
+				config_error("\"%s\" is not a valid numeric argument.\n", argument);
+				break;
+			}
 
-      if (is_numeric(argument2) == FALSE) {
-	config_error("\"%s\" is not a valid numeric argument.\n", argument2);
-	break;
-      }
+			if (is_numeric(argument2) == FALSE) {
+				config_error("\"%s\" is not a valid numeric argument.\n", argument2);
+				break;
+			}
       
-      port->cray_idev = str_to_int(argument);
-      port->cray_odev = str_to_int(argument2);
-      break;
+			port->cray_idev = str_to_int(argument);
+			port->cray_odev = str_to_int(argument2);
+			break;
 
-    case HOSTOPT_BOARD:
-      argument = read_option();
+		case HOSTOPT_BOARD:
+			argument = read_option();
 
-      if (port->swp_type != HIPPI_HOST) {
-	config_error("Board option only valid for HIPPI hosts.\n");
-	break;
-      }
+			if (port->swp_type != HIPPI_HOST) {
+				config_error("Board option only valid for HIPPI hosts.\n");
+				break;
+			}
 
-      if (argument == NULL) {
-	config_error("Board number required for board option.\n");
-	break;
-      }
+			if (argument == NULL) {
+				config_error("Board number required for board option.\n");
+				break;
+			}
 
-      if (is_numeric(argument) == FALSE) {
-	config_error("\"%s\" is not a valid numeric argument.\n", argument);
-	break;
-      }
+			if (is_numeric(argument) == FALSE) {
+				config_error("\"%s\" is not a valid numeric argument.\n", argument);
+				break;
+			}
 
-      port->giga_board_num = str_to_int(argument);
-      break;
-    }
-  }
+			port->giga_board_num = str_to_int(argument);
+			break;
+		}
+	}
 
-  return NO_ERROR;
+	return NO_ERROR;
 }
      
   
@@ -369,28 +370,28 @@ scan_host(port)
  */
 static int
 scan_null(port)
-     PORT		*port;
+	PORT		*port;
 {
-  char		*argument;
-  int		token;
+	char		*argument;
+	int			token;
  
 
-  port->swp_name = "NULL_PORT";
+	port->swp_name = "NULL_PORT";
 
-  while((argument = read_option()) != NULL) {
+	while((argument = read_option()) != NULL) {
 
-    if (handle_port_options(port, argument) == TRUE)
-      continue;
+		if (handle_port_options(port, argument) == TRUE)
+			continue;
 
-    if ((token = parse_token(argument, null_options)) == TOKEN_NOT_FOUND)
-      continue;
+		if ((token = parse_token(argument, null_options)) == TOKEN_NOT_FOUND)
+			continue;
 
-    switch(token) {
-      /* No unique options	*/
-    }
-  }
+		switch(token) {
+			/* No unique options	*/
+		}
+	}
 
-  return NO_ERROR;
+	return NO_ERROR;
 }
 
 
@@ -399,71 +400,72 @@ scan_null(port)
  */
 static int
 scan_link(port)
-     PORT		*port;
+	PORT		*port;
 {
-  char		*argument;
-  int		token;
+	char		*argument;
+	int			token;
 
-  /*	Read destination switch
-   */
-  argument = read_option();
 
-  if (argument == NULL) {
-    config_error("Destination switch required for link. Ignoring.\n");
-    return ERROR;
-  }
+	/*	Read destination switch
+	 */
+	argument = read_option();
 
-  /*	We can't check the switch name now, since we don't have a complete
-   *	list of switches yet.
-   */
+	if (argument == NULL) {
+		config_error("Destination switch required for link. Ignoring.\n");
+		return ERROR;
+	}
 
-  strncpy(port->link_swname, argument, SWNAMELEN);
-  port->link_sw = NULL;
-  port->link_default = FALSE;
-  port->link_metric = DEFAULT_LINK_METRIC;
+	/*	We can't check the switch name now, since we don't have a complete
+	 *	list of switches yet.
+	 */
+
+	strncpy(port->link_swname, argument, SWNAMELEN);
+	port->link_sw = NULL;
+	port->link_default = FALSE;
+	port->link_metric = DEFAULT_LINK_METRIC;
   
-  /* Create link name
-   */
-  {
-    char buffer[BUFFERLEN];
+	/* Create link name
+	 */
+	{
+		char buffer[BUFFERLEN];
     
-    sprintf(buffer, "Link to %s", port->link_swname);
+		sprintf(buffer, "Link to %s", port->link_swname);
 
-    port->swp_name = strdup(buffer);
-  }
+		port->swp_name = strdup(buffer);
+	}
 
-  while ((argument = read_option()) != NULL) {
+	while ((argument = read_option()) != NULL) {
 
-    if (handle_port_options(port, argument) == TRUE)
-      continue;
+		if (handle_port_options(port, argument) == TRUE)
+			continue;
 
-    if ((token = parse_token(argument, link_options)) == TOKEN_NOT_FOUND) {
-      config_error("\"%s\" is not recognized. Skipping.\n", argument);
-      continue;
-    }
+		if ((token = parse_token(argument, link_options)) == TOKEN_NOT_FOUND) {
+			config_error("\"%s\" is not recognized. Skipping.\n", argument);
+			continue;
+		}
 
-    switch(token) {
-    case LINKOPT_DEFAULT:
-      port->link_default = TRUE;
-      break;
+		switch(token) {
+		case LINKOPT_DEFAULT:
+			port->link_default = TRUE;
+			break;
 
-    case LINKOPT_METRIC:
-      if ((argument = read_option()) == NULL) {
-	config_error("Argument required for metric option. Ignoring.\n");
-	break;
-      }
+		case LINKOPT_METRIC:
+			if ((argument = read_option()) == NULL) {
+				config_error("Argument required for metric option. Ignoring.\n");
+				break;
+			}
 
-      if (is_numeric(argument) == FALSE) {
-	config_error("\"%s\" is not a valid metric. Ignoring.\n", argument);
-	break;
-      }
+			if (is_numeric(argument) == FALSE) {
+				config_error("\"%s\" is not a valid metric. Ignoring.\n", argument);
+				break;
+			}
 
-      port->link_metric = str_to_int(argument);
-      break;
-    }
-  }
+			port->link_metric = str_to_int(argument);
+			break;
+		}
+	}
 
-  return NO_ERROR;
+	return NO_ERROR;
 }
 
 
@@ -473,38 +475,38 @@ scan_link(port)
  */
 static int
 scan_device(port)
-     PORT		*port;
+	PORT		*port;
 {
-  char		*argument;
-  int		token;
+	char		*argument;
+	int			token;
 
 
-  /*	Read name
-   */
-  if ((argument = read_option()) == NULL) {
-    argument = "Unnamed";
-  }
+	/*	Read name
+	 */
+	if ((argument = read_option()) == NULL) {
+		argument = "Unnamed";
+	}
 
-  port->swp_name = port->dev_name;
+	port->swp_name = port->dev_name;
 
-  strncpy(port->swp_name, argument, HNAMELEN);
+	strncpy(port->swp_name, argument, HNAMELEN);
 
-  while((argument = read_option()) != NULL) {
+	while((argument = read_option()) != NULL) {
 
-    if (handle_port_options(port, argument) == TRUE)
-      continue;
+		if (handle_port_options(port, argument) == TRUE)
+			continue;
 
-    if ((token = parse_token(argument, device_options)) == TOKEN_NOT_FOUND) {
-      config_error("\"%s\" is not recognized. Skipping.\n", argument);
-      continue;
-    }
+		if ((token = parse_token(argument, device_options)) == TOKEN_NOT_FOUND) {
+			config_error("\"%s\" is not recognized. Skipping.\n", argument);
+			continue;
+		}
 
-    switch(token) {
-      /* No unique options	*/
-    }
-  }
+		switch(token) {
+			/* No unique options	*/
+		}
+	}
 
-  return NO_ERROR;
+	return NO_ERROR;
 }
 
 
@@ -515,56 +517,57 @@ scan_device(port)
  */
 static Boolean
 handle_port_options(port, option)
-     PORT		*port;
-     char		*option;
+	PORT		*port;
+	char		*option;
 {
-  int		token;
-  char		*arg;
+	int			token;
+	char		*arg;
 
-  if ((token = parse_token(option, port_options)) != TOKEN_NOT_FOUND) {
+
+	if ((token = parse_token(option, port_options)) != TOKEN_NOT_FOUND) {
  
-    switch(token) {
-    case OPTION_COMMENT:
-      arg = read_option();
+		switch(token) {
+		case OPTION_COMMENT:
+			arg = read_option();
 
-      if (arg == NULL)
-	config_error("Warning: null comment.\n");
-      else
-	strncpy(port->swp_comment, arg, COMMENTLEN);
-      break;
+			if (arg == NULL)
+				config_error("Warning: null comment.\n");
+			else
+				strncpy(port->swp_comment, arg, COMMENTLEN);
+			break;
 
-    case OPTION_NEED_DISABLED:
-      port->swp_need_disabled = TRUE;
-      break;
-    }
+		case OPTION_NEED_DISABLED:
+			port->swp_need_disabled = TRUE;
+			break;
+		}
     
-    return TRUE;
-  }
+		return TRUE;
+	}
 
-  if (port->swp_type == HIPPI_LINK)
-    return FALSE;
+	if (port->swp_type == HIPPI_LINK)
+		return FALSE;
  
-  if ((token = parse_token(option, non_link_options)) != TOKEN_NOT_FOUND) {
+	if ((token = parse_token(option, non_link_options)) != TOKEN_NOT_FOUND) {
  
-    switch(token) {
-    case OPTION_ADDR:
-      handle_addr(port);
-      break;
+		switch(token) {
+		case OPTION_ADDR:
+			handle_addr(port);
+			break;
 
-    case OPTION_TESTER:
-      port->swp_tester = TRUE;
-      break;
+		case OPTION_TESTER:
+			port->swp_tester = TRUE;
+			break;
 
-    case OPTION_DEFAULT:
-      handle_default(port);
-      break;
-    }
+		case OPTION_DEFAULT:
+			handle_default(port);
+			break;
+		}
     
-    return TRUE;
-  }
+		return TRUE;
+	}
 
 
-  return FALSE;
+	return FALSE;
 }
 
   
@@ -578,32 +581,32 @@ handle_port_options(port, option)
  */
 static void
 handle_addr(port)
-     PORT		*port;
+	PORT		*port;
 {
-  char		*argument;
-  char		*comment = port->swp_name;
-  Logaddr	logaddr;
+	char		*argument;
+	char		*comment = port->swp_name;
+	Logaddr		logaddr;
 
-  if ((argument = read_option()) == NULL) {
-    config_error("Address required for addr option.\n");
-    return;
-  }
+	if ((argument = read_option()) == NULL) {
+		config_error("Address required for addr option.\n");
+		return;
+	}
  
-  /*	If this argument is numeric assume it's the address, otherwise
-   *	assume it's a comment.
-   */
-  if (is_numeric(argument) == FALSE) {
-    comment = argument;
+	/*	If this argument is numeric assume it's the address, otherwise
+	 *	assume it's a comment.
+	 */
+	if (is_numeric(argument) == FALSE) {
+		comment = argument;
 
-    if ((argument = read_option()) == NULL) {
-      config_error("\"%s\" is not a valid address.\n", comment);
-      return;
-    }
-  }
+		if ((argument = read_option()) == NULL) {
+			config_error("\"%s\" is not a valid address.\n", comment);
+			return;
+		}
+	}
 
-  logaddr = str_to_log(argument);
+	logaddr = str_to_log(argument);
 
-  handle_logical_port(logaddr, port, comment);
+	handle_logical_port(logaddr, port, comment);
 }
 
 
@@ -616,37 +619,37 @@ handle_addr(port)
  */
 static void
 handle_addhost(port)
-     PORT		*port;
+	PORT		*port;
 {
-  char		*hostname;
-  char		*address;
+	char		*hostname;
+	char		*address;
 
-  Logaddr	logaddr;
+	Logaddr		logaddr;
 
-  LOGICAL_MAP	*map;
-  PORT		*duplicate;
+	LOGICAL_MAP	*map;
+	PORT		*duplicate;
 
 
-  hostname = read_option();
-  address = read_option();
+	hostname = read_option();
+	address = read_option();
 
-  if ((hostname == NULL) || (address == NULL)) {
-    config_error("Hostname and logical address required for addhost option.\n");
-    return;
-  }
+	if ((hostname == NULL) || (address == NULL)) {
+		config_error("Hostname and logical address required for addhost option.\n");
+		return;
+	}
 
-  logaddr = str_to_log(address);
+	logaddr = str_to_log(address);
 
-  /*	Check to be sure the logical address is not already in use.
-   */
-  if ((map = find_map_by_logaddr(logaddr)) != NULL) {
-    duplicate = map->port;
-    config_error("Logical address %#x is already used by %s on line %d.\n",
-		 logaddr, duplicate->swp_name, duplicate->swp_linenum);
-    return;
-  }
+	/*	Check to be sure the logical address is not already in use.
+	 */
+	if ((map = find_map_by_logaddr(logaddr)) != NULL) {
+		duplicate = map->port;
+		config_error("Logical address %#x is already used by %s on line %d.\n",
+					 logaddr, duplicate->swp_name, duplicate->swp_linenum);
+		return;
+	}
 
-  handle_ip_logical(hostname, logaddr, port);
+	handle_ip_logical(hostname, logaddr, port);
 }       
 				   
   
@@ -655,23 +658,23 @@ handle_addhost(port)
  */
 static void
 handle_default(port)
-     PORT		*port;
+	PORT		*port;
 {
-  Logaddr		logaddr;
+	Logaddr		logaddr;
 
-  char			*addr_str;
+	char		*addr_str;
 
-  if ((addr_str = read_option()) == NULL) {
-    config_error("Address required for default option.\n");
-    return;
-  }
+	if ((addr_str = read_option()) == NULL) {
+		config_error("Address required for default option.\n");
+		return;
+	}
 
-  if (strcasecmp(addr_str, "none") == 0)
-    logaddr = LOGADDR_NULL;
-  else
-    logaddr = str_to_log(addr_str);
+	if (strcasecmp(addr_str, "none") == 0)
+		logaddr = LOGADDR_NULL;
+	else
+		logaddr = str_to_log(addr_str);
 
-  port->swp_default_logaddr = logaddr;
+	port->swp_default_logaddr = logaddr;
 }
 
 
@@ -682,66 +685,66 @@ handle_default(port)
  */
 static int
 handle_add_map(hostname, logaddr, port, comment)
-     char		*hostname;
-     Logaddr		logaddr;
-     PORT		*port;
-     char		*comment;
+	char		*hostname;
+	Logaddr		logaddr;
+	PORT		*port;
+	char		*comment;
 {
-  int		rc = NO_ERROR;
-  LOGICAL_MAP	*lmap;
-  LOGICAL_MAP	*hmap;
-  PORT		*duplicate;
-  Netaddr	netaddr;
+	int			rc = NO_ERROR;
+	LOGICAL_MAP	*lmap;
+	LOGICAL_MAP	*hmap;
+	PORT		*duplicate;
+	Netaddr		netaddr;
 
 
-  switch(add_address_map(hostname, logaddr, port, comment)) {
-  case NO_ERROR:
-    break;
+	switch(add_address_map(hostname, logaddr, port, comment)) {
+	case NO_ERROR:
+		break;
 
-  case ADD_ADDRESS_MALLOC_ERROR:
-    config_error("malloc() error. Exiting.\n");
-    exit(1);
+	case ADD_ADDRESS_MALLOC_ERROR:
+		config_error("malloc() error. Exiting.\n");
+		exit(1);
 
-  case ADD_ADDRESS_LA_DUP:
-    lmap = find_map_by_logaddr(logaddr);
+	case ADD_ADDRESS_LA_DUP:
+		lmap = find_map_by_logaddr(logaddr);
 
-    duplicate = lmap->port;
+		duplicate = lmap->port;
 
-    /* if (duplicate == port) then this mapping has already taken place
-     */
-    if (duplicate != port) {
-      config_error("Address %#x is already in use by %s (line %d).\n",
-		   logaddr, duplicate->swp_name, duplicate->swp_linenum);
+		/* if (duplicate == port) then this mapping has already taken place
+		 */
+		if (duplicate != port) {
+			config_error("Address %#x is already in use by %s (line %d).\n",
+						 logaddr, duplicate->swp_name, duplicate->swp_linenum);
     
-      rc = ERROR;
-    }
-    break;
+			rc = ERROR;
+		}
+		break;
 
-  case ADD_ADDRESS_LA_ILLEGAL:
-    config_error("Address %#x is not a legal value.\n", logaddr);
-    rc = ERROR;
-    break;
+	case ADD_ADDRESS_LA_ILLEGAL:
+		config_error("Address %#x is not a legal value.\n", logaddr);
+		rc = ERROR;
+		break;
 
-  case ADD_ADDRESS_IP_DUP:
-    netaddr = parse_hostname(hostname);
+	case ADD_ADDRESS_IP_DUP:
+		netaddr = parse_hostname(hostname);
 
-    hmap = find_map_by_netaddr(netaddr);
+		hmap = find_map_by_netaddr(netaddr);
     
-    config_error("%s (%s) is already mapped to logical address 0x%x.\n",
-		 hmap->hostname,
-		 netaddr_to_ascii(hmap->netaddr),
-		 hmap->logaddr);
-    rc = ERROR;
-    break;
+		config_error("%s (%s) is already mapped to logical address 0x%x.\n",
+					 hmap->hostname,
+					 netaddr_to_ascii(hmap->netaddr),
+					 hmap->logaddr);
+		rc = ERROR;
+		break;
     
 
-   case ADD_ADDRESS_HOST_UNKNOWN:
-    config_error("Couldn't resolve hostname \"%s\".\n", hostname);
-    rc = ERROR;
-    break;
-  }
+	case ADD_ADDRESS_HOST_UNKNOWN:
+		config_error("Couldn't resolve hostname \"%s\".\n", hostname);
+		rc = ERROR;
+		break;
+	}
 
-  return rc;
+	return rc;
 }
 
 
@@ -753,21 +756,19 @@ handle_add_map(hostname, logaddr, port, comment)
  */
 static Netaddr
 parse_hostname(hostname)
-     char		*hostname;
+	char		*hostname;
 {
-  Netaddr		netaddr;
+	Netaddr		netaddr;
 
-  if ((netaddr = hostname_to_netaddr(hostname)) == NETADDR_NULL)
-    if (handle_hippi_addr(hostname, &netaddr) == ERROR)
-      config_error("Warning: Temporary address \"%s\": Bad value\n",
-		   hostname);
+	if ((netaddr = hostname_to_netaddr(hostname)) == NETADDR_NULL)
+		if (handle_hippi_addr(hostname, &netaddr) == ERROR)
+			config_error("Warning: Temporary address \"%s\": Bad value\n",
+						 hostname);
 
-  if (netaddr == NETADDR_NULL)
-    config_error("Warning: Can't get net address for \"%s\".\n",
-		 hostname);
+	if (netaddr == NETADDR_NULL)
+		config_error("Warning: Can't get net address for \"%s\".\n",
+					 hostname);
 
-  return netaddr;
+	return netaddr;
 }    
- 
-				     
 				    
