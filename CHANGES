@@ -25,5 +25,14 @@ From 0.1 Beta to 0.2 Beta:
 	ADDED: Daemon now checked to see if the host it's running on is
 		the one specified in the configuration file and prints
 		a warning to the log if it's not.
-	ADDED: hippisw client will not automatically rerequest password
+	ADDED: hippisw client will now automatically rerequest password
 		if it is rejected by the daemon.
+	ADDED: logging facilities. hippiswd will now pipe unexpect switch
+		output through a specified log command. Other events are
+		logged through syslog().
+	BUG FIX: Exceptional conditions on a switch are now noted
+		immediately and not the first time a user attempted to
+		talk to it.
+	BUG FIX: harp -c and -C arguments were broken.
+	ADDED: Support for Cray Server 6400 to harp.
+
