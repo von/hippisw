@@ -4,7 +4,7 @@
  *	The commands are written to standard output.
  *
  *
- *	$Id: mksw.c,v 1.3 1995/04/06 22:23:51 vwelch Exp $
+ *	$Id: mksw.c,v 1.4 1995/04/09 21:46:47 vwelch Exp $
  * 
  */
 
@@ -172,9 +172,10 @@ static void doswitch(mysw)
   if (tester_port != NULL) {
 
     /* Determine our path to the tester */
-    if (mysw == tester_sw)
+    if (mysw == tester_sw) {
       to_tester = add_port_to_path(to_tester, tester_port);
-    else
+      to_tester->cost = 0;
+    } else
       to_tester = find_path(mysw, tester_sw);
 			
     if (path_empty(to_tester))

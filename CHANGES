@@ -4,6 +4,9 @@
 
 From 0.2 Beta to 0.2.1 Beta:
 	BUG FIX: Disabling of ports was broken.
+	BUG FIX: Fixed bug with mksw that caused it to not find the path
+		to the tester on the switch which the tester was
+		located.
 
 From 0.1 Beta to 0.2 Beta:
 
