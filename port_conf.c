@@ -35,6 +35,8 @@ static int handle_add_map		PROTO((char *hostname,
 					       Logaddr logaddr,
 					       PORT *port,
 					       char *comment));
+static Netaddr parse_hostname		PROTO((char *hostname));
+
 
 #define	handle_logical_port(logaddr, port, comment)	\
 	handle_add_map(NULL, logaddr, port, comment)
@@ -256,9 +258,7 @@ scan_host(port)
 
   strncpy(port->swp_name, name, HNAMELEN);
   
-  if ((netaddr = hostname_to_netaddr(port->swp_name)) == NETADDR_NULL)
-    config_error("Warning: Can't get net address for \"%s\".\n",
-		 port->swp_name);
+  netaddr = parse_hostname(port->swp_name);
   
   port->host_addr = netaddr;	
 
@@ -699,18 +699,20 @@ handle_add_map(hostname, logaddr, port, comment)
     break;
 
   case ADD_ADDRESS_IP_DUP:
-    hmap = find_map_by_netaddr(hostname_to_netaddr(hostname));
-    
-    netaddr = hostname_to_netaddr(hostname);
+    netaddr = parse_hostname(hostname);
 
+    hmap = find_map_by_netaddr(netaddr);
+    
     config_error("%s (%s) is already mapped to logical address 0x%x.\n",
-		 hostname, netaddr_to_ascii(netaddr), hmap->logaddr);
+		 hmap->hostname,
+		 netaddr_to_ascii(hmap->netaddr),
+		 hmap->logaddr);
     rc = ERROR;
     break;
     
 
    case ADD_ADDRESS_HOST_UNKNOWN:
-    config_error("Could resolve hostname \"%s\".\n", hostname);
+    config_error("Couldn't resolve hostname \"%s\".\n", hostname);
     rc = ERROR;
     break;
   }
@@ -719,6 +721,29 @@ handle_add_map(hostname, logaddr, port, comment)
 }
 
 
+
+/*
+ *	Parse a hostname.
+ *
+ *	Returns net address or NETADDR null if the name cannot be parsed.
+ */
+static Netaddr
+parse_hostname(hostname)
+     char		*hostname;
+{
+  Netaddr		netaddr;
+
+  if ((netaddr = hostname_to_netaddr(hostname)) == NETADDR_NULL)
+    if (handle_hippi_addr(hostname, &netaddr) == ERROR)
+      config_error("Warning: Temporary address \"%s\": Bad value\n",
+		   hostname);
+
+  if (netaddr == NETADDR_NULL)
+    config_error("Warning: Can't get net address for \"%s\".\n",
+		 hostname);
+
+  return netaddr;
+}    
  
 				     
 				    

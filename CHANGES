@@ -2,6 +2,15 @@
 
 		CHANGES
 
+From 0.2.1 to 0.2.2:
+	BUG FIX: Printing of error caused by a duplicate IP address printed
+		hostname on line being parsed insteat of previous host with
+		same IP address.
+	BUG FIX: Temporary addresses "hippi-xxx" are now converted to
+		dot addresses immediately. This fixes some problems with
+		harp printing the temporary name when it needs to print
+		a dot address.
+
 From 0.2 Beta to 0.2.1 Beta:
 	BUG FIX: Disabling of ports was broken.
 	BUG FIX: Fixed bug with mksw that caused it to not find the path

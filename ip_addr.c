@@ -81,10 +81,7 @@ hostname_to_netaddr(name)
     if (hinfo = gethostbyname(name))	{
       bcopy(hinfo->h_addr, &addr, hinfo->h_length);
     
-    } else if (sscanf(name, "hippi-%d", &addr) == 1) {
-      addr += addr_config.hippi_network;
-
-    } else	{
+    } else {
       addr = NETADDR_NULL;
     }
   }
@@ -111,4 +108,38 @@ hostname_to_fullname(name)
     strncpy(fullname, name, HNAMELEN);
 
   return fullname;
+}
+
+
+/*
+ *	Check to see if a string is a temporary "hippi-xx" address.
+ *
+ *	If it is fill netaddr with the network addres if it is or
+ *	NETADDR_NULL otherwise and replace hostname with dot address.
+ *
+ *	Returns ERROR if the hippi address value is illegal.
+ */
+int
+handle_hippi_addr(name, netaddr)
+     char		*name;
+     Netaddr		*netaddr;
+{
+  Netaddr		addr;
+
+  if (sscanf(name, "hippi-%d", &addr) == 1) {
+
+    /* Check for illegal value. */
+    if ((addr < 1) || (addr > 254))
+      return ERROR;
+
+    *netaddr = addr + addr_config.hippi_network;
+
+    strcpy(name, netaddr_to_ascii(*netaddr));
+
+  } else {
+
+    netaddr = NETADDR_NULL;
+  }
+
+  return NO_ERROR;
 }
