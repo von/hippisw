@@ -11,7 +11,7 @@
 #include "daemon_config.h"
 #include "time_string.h"
 #include "prompt.h"
-
+#include "ip_addr.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -40,7 +40,8 @@ static void remove_pid_file	PROTO((VOID));
 void graceful_death		PROTO((int exit_status));
 void restart			PROTO((VOID));
 static void cleanup		PROTO((VOID));
-
+static void check_host		PROTO((char *specified_host,
+				       char *actual_host));
 #define HIPPISWD_PID_FILE	"hippiswd.pid"
 
 /*
@@ -65,6 +66,7 @@ main(argc, argv)
   int			errflg = 0;
 
   Boolean		debug = FALSE;
+  Boolean		force_start = FALSE;
 
   char			*myname;
 
@@ -91,7 +93,7 @@ main(argc, argv)
     myname++;
 
   /*	Process arguments		*/
-  while ((c = getopt(argc, argv, "c:dv")) != EOF)
+  while ((c = getopt(argc, argv, "c:dfv")) != EOF)
     switch(c) {
 
     case 'c':
@@ -101,6 +103,10 @@ main(argc, argv)
     case 'd':
       debug = TRUE;
       fprintf(stderr, "%s: Running in debug mode.\n", myname);
+      break;
+
+    case 'f':
+      force_start = TRUE;
       break;
 
     case 'v':
@@ -132,9 +138,10 @@ main(argc, argv)
   }
 
   /*
-   *	Check for daemon already running.
+   *	Check for existing pid file. If there is one and we're
+   *	not in force_start state, then abort.
    */
-  if ((pid = read_pid_file()) != ERROR) {
+  if (((pid = read_pid_file()) != ERROR) && (!force_start)) {
     fprintf(stderr, "File %s already exists. Daemon with pid %d possibly\n",
 	    HIPPISWD_PID_FILE, pid);
     fprintf(stderr, "already running. If not remove file %s in working directory.\n",
@@ -162,6 +169,7 @@ main(argc, argv)
   
   max_fd = (int) ulimit(4, 0);
 
+  /*	Time in between attempts to establish connections to a switch	*/
   timeout.tv_usec = 0;
   timeout.tv_sec = 15;
 
@@ -183,6 +191,9 @@ main(argc, argv)
   else
     log("hippiswd started\n");
   log("On host %s with pid %d\n", hostname, getpid());
+
+  check_host(daemon_config.hostname, hostname);
+
   log("Listening for clients on port %d\n", daemon_config.daemon_port);
   log("Working directory is %s\n", daemon_config.working_dir);
   log("Read config file: %s\n", config_file);
@@ -276,6 +287,7 @@ usage(myname)
   fprintf(stderr, "  Options:\n");
   fprintf(stderr, "\t-c <config file>   Specify configuration file to use.\n");
   fprintf(stderr, "\t-d                 Debug mode.\n");
+  fprintf(stderr, "\t-f                 Force start (don't die unless we really have to).\n");
   fprintf(stderr, "\t-v                 Print version information and quit.\n");
 }
 
@@ -411,7 +423,6 @@ signal_catcher(signum)
     
   case SIGSEGV:
     log("Segment Violation, bye-bye!\n");
-    abort();
     graceful_death(0);
     
   default:
@@ -609,3 +620,19 @@ cleanup()
   
   close_log_file();
 }
+
+
+/*
+ *	Check that we're running on the correct host and print a
+ *	warning to the log if we're not.
+ */
+static void
+check_host(specified_host, actual_host)
+     char		*specified_host;
+     char		*actual_host;
+{
+  if (hostname_to_netaddr(specified_host) !=
+      hostname_to_netaddr(actual_host))
+    log("Warning: Host %s specified in config file.\n", specified_host);
+}
+	

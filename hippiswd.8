@@ -1,5 +1,5 @@
-.\" $Id: hippiswd.8,v 1.1 1995/02/28 23:17:25 vwelch Exp $
-.TH HIPPISDW 8 "$Date: 1995/02/28 23:17:25 $"
+.\" $Id: hippiswd.8,v 1.2 1995/03/09 22:23:07 vwelch Exp $
+.TH HIPPISDW 8 "$Date: 1995/03/09 22:23:07 $"
 .SH NAME
 hippiswd \- HIPPI switch manager
 .SH SYNOPSIS
@@ -22,6 +22,10 @@ commands to the any of the HIPPI switches.
 
 -d              Debug mode; don't actually connect to
                 any switches.
+
+-f              Force start. Currently this causes hippiswd to ignore
+                any current hippiswd.pid file which might indicate the
+                concurrent running of another daemon.
 
 -v              Print version information and exit.
 .ft R

@@ -2,7 +2,7 @@
 #
 #	Makefile for hippisw
 #
-#	$Id: Makefile,v 1.1 1995/02/28 23:17:16 vwelch Exp $
+#	$Id: Makefile,v 1.2 1995/03/09 22:22:53 vwelch Exp $
 #
 ###########################################################################
 
@@ -10,10 +10,16 @@
 
 MAGIC_STRING	=	hippi
 
-CONFIG_FILE	=	/afs/ncsa/packages/hippisw/config.hippi
+CONFIG_FILE	=	/usr/local/etc/hippisw/config.hippi
 
-BIN_DIR		=	/afs/ncsa/packages/hippisw/`uname`/bin
-MAN_DIR		=	/afs/ncsa/packages/hippisw/man
+BIN_DIR		=	/usr/local/etc/hippisw/
+MAN_DIR		=	/usr/local/man
+
+#
+# Normally the hippiswd daemon only requires a password for killing and
+# restarting it. If you want any connection to the daemon to require
+# a password define HIPPISWD_REQUIRE_PASSWD.
+#REQUIRE_PASSWORD	=	-DHIPPISWD_REQUIRE_PASSWD
 
 #	End configurable parameters
 
@@ -45,11 +51,11 @@ CC		=	gcc
 #	-DDEBUG_SWMAP		Debug switchmap building routines.
 #
 
-#DEBUG		=	-DHIPPISWD_MAKE_CORE
+#DEBUG		=	-DDEBUG
 
 ###########################################################################
 
-CFLAGS =	-g $(PROTOTYPES) \
+CFLAGS =	-g $(PROTOTYPES) $(REQUIRE_PASSWORD)  \
 		-DMAGIC_STRING=\"$(MAGIC_STRING)\"  \
 		-DCONFIG_FILE=\"$(CONFIG_FILE)\" \
 		$(DEBUG)

@@ -2,7 +2,7 @@
 
 		CHANGES
 
-From previous version (unlabeled) to 0.1:
+From previous version (unlabeled) to 0.1 Beta:
 
 	Code nearly completely rewritten. Functional changes include:
 	  -Ports that need to be disabled (PS32 18C boards) must now be
@@ -12,3 +12,18 @@ From previous version (unlabeled) to 0.1:
 	  -Seperate address line in configuration file for address-
 	   related stuff.
 	  -Different types of default logical address are selectable.
+
+From 0.1 Beta to 0.2 Beta:
+
+	BUG FIX: hippiswd was calling abort() on segment violation
+		instead of graceful_death().
+	BUG FIX: When a connection was preempted message was not being
+		printed to preempted user explaining preemption.
+	CLEAN UP: hippisw usage output format cleaned up.
+	ADDED: -f option to hippiswd to force it to ignore any current
+		hippisw.pid file.
+	ADDED: Daemon now checked to see if the host it's running on is
+		the one specified in the configuration file and prints
+		a warning to the log if it's not.
+	ADDED: hippisw client will not automatically rerequest password
+		if it is rejected by the daemon.

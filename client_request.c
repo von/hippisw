@@ -164,6 +164,7 @@ handle_logon(client_sock, request)
      *	Is client preempting?
      */
     if (request->flags & HIPPISWD_FLG_USURP) {
+      char buffer[BUFFERLEN];
 
       /*
        * Close current connection.
@@ -173,9 +174,12 @@ handle_logon(client_sock, request)
 	  conn->client_name, conn->client_hostname,
 	  sw->sw_name);
 
-      fprintf(conn->client_out,
-	      "Connection preempted by %s@%s.\n",
+      sprintf(buffer,
+	      "\nYour connection was preempted by %s@%s.\n",
 	      request->username, request->hostname);
+
+      write_to_client(conn, buffer, strlen(buffer));
+
       close_client_conn(conn);
     
     } else {

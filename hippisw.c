@@ -47,8 +47,21 @@ static Boolean handle_user_input  	PROTO((FILE* input_file,
 
 static void init_request	PROTO((CLIENT_PACKET *request));
 
+static void get_password	PROTO((CLIENT_PACKET *request));
 
-extern char *getpass		PROTO((char *prompt));
+
+
+/*
+ *	Return codes for login_to_daemon
+ */
+#define	LOGIN_OK		0
+#define	LOGIN_NO_CONNECT	-1
+#define LOGIN_BAD_CONNECT	-2
+#define LOGIN_BAD_SWITCH	-3
+#define LOGIN_BAD_PASSWD	-4
+#define LOGIN_NO_PERM		-5
+
+
 
 
 main(argc, argv)
@@ -195,12 +208,10 @@ main(argc, argv)
    *	Get the passowrd if needed.
    */
   request_password |= REQUEST_NEEDS_PASSWORD(&request);
-
+  
   if (request_password)
-    strncpy(request.password,
-	    getpass("Enter hippiswd password: "),
-	    PASSWDLEN);
-
+    get_password(&request);
+  
 
   /*
    *	Do it.
@@ -355,23 +366,44 @@ handle_logon(request, daemon_host, daemon_port, input_filename)
        * Attempt logon if we have a switch name.
        */
 
-      if (strlen(request->sw_name) > 0) {
+      while ((strlen(request->sw_name) > 0) && !connected) {
+
 	daemon_fd = login_to_daemon(request, daemon_host, daemon_port);
 
 	if (daemon_fd < 0) {
 	  /* If this isn't a tty exit to prevent a bunch of commands from
 	   * going to the wrong switch.
-	   * If this is a tty force user to enter another switch name.
 	   */
                            
 	  if (!istty)
 	    exit(1);
 
+	  switch(daemon_fd) {
+	  case LOGIN_NO_CONNECT:
+	  case LOGIN_BAD_CONNECT:
+	  case LOGIN_NO_PERM:
+	    /* These errors are likely to repeat no mater what we do, so
+	     * let's just bail out.
+	     */
+	    exit(1);
 
-	  NULL_STRING(request->sw_name);
+	  case LOGIN_BAD_SWITCH:      
+	    /* Make user select another switch */
+	    NULL_STRING(request->sw_name);
+	    break;
+
+	  case LOGIN_BAD_PASSWD:
+	    /* Make user reenter password */
+	    get_password(request);
+	    break;
+	    
+	  default:
+	    /* Just to catch any programming goofs...*/
+	    fprintf(stderr,
+		    "Oops! Reached default on switch(daemon_fd)! Dying.\n");
+	    exit(1);
+	  }
 	
-	  connected = FALSE;
-
 	} else {
 	  connected = TRUE;
 
@@ -423,7 +455,8 @@ handle_logon(request, daemon_host, daemon_port, input_filename)
  *	Log in to the daemon.
  *
  *	Overwrites request with response from daemon.
- *	Returns ERROR or file descriptor.
+ *	Returns either a socket descriptor, LOGIN_OK, or
+ *	a negitive error code (see above).
  */
 static int
 login_to_daemon(request, daemon_host, daemon_port)
@@ -434,21 +467,21 @@ login_to_daemon(request, daemon_host, daemon_port)
   int			sock;
   struct sockaddr_in	addr;
   struct hostent	*hostent;
-  CLIENT_PACKET		*response = request;
+  CLIENT_PACKET		response_pkt, *response = &response_pkt;
 
 
   hostent = gethostbyname(daemon_host);
   
   if (hostent == NULL) {
     fprintf(stderr, "Couldn't resolve hostname \"%s\".\n", daemon_host);
-    return ERROR;
+    return LOGIN_NO_CONNECT;
   }
 
   sock = socket(PF_INET, SOCK_STREAM, 0);
 
   if (sock == -1) {
     perror("socket()");
-    exit(1);
+    return LOGIN_NO_CONNECT;
   }
 
   addr.sin_family = AF_INET;
@@ -460,7 +493,7 @@ login_to_daemon(request, daemon_host, daemon_port)
 	    daemon_host, daemon_port);
     perror("connect()");
     close(sock);
-    return ERROR;
+    return LOGIN_NO_CONNECT;
   }
 
   init_request(request);
@@ -468,13 +501,13 @@ login_to_daemon(request, daemon_host, daemon_port)
   if (write(sock, request, sizeof(CLIENT_PACKET)) < sizeof(CLIENT_PACKET)) {
     perror("Error writing to daemon");
     close(sock);
-    return ERROR;
+    return LOGIN_BAD_CONNECT;
   }
 
   if (read(sock, response, sizeof(CLIENT_PACKET)) < sizeof(CLIENT_PACKET)) {
     perror("Error reading from daemon");
     close(sock);
-    return ERROR;
+    return LOGIN_BAD_CONNECT;
   }
 
   switch(response->code) {
@@ -488,21 +521,21 @@ login_to_daemon(request, daemon_host, daemon_port)
 	   response->sw_name, response->username, response->hostname,
 	   response->idle_time);
     close(sock);
-    sock = ERROR;
+    sock = LOGIN_BAD_SWITCH;
     break;
 
   case HIPPISWD_RSP_NO_CONN:
     printf("Daemon has no connection to switch %s.\n",
 	   response->sw_name);
     close(sock);
-    sock = ERROR;
+    sock = LOGIN_BAD_SWITCH;
     break;
 
   case HIPPISWD_RSP_NO_SUCH:
     printf("Unknown switch \"%s\".\n",
 	   response->sw_name);
     close(sock);
-    sock = ERROR;
+    sock = LOGIN_BAD_SWITCH;
     break;
 
   case HIPPISWD_RSP_PING:
@@ -520,31 +553,31 @@ login_to_daemon(request, daemon_host, daemon_port)
   case HIPPISWD_RSP_BAD_PW:
     printf("Bad password.\n");
     close(sock);
-    sock = ERROR;
+    sock = LOGIN_BAD_PASSWD;
     break;
   
   case HIPPISWD_RSP_NO_PERM:
     printf("Permission denied.\n");
     close(sock);
-    sock = ERROR;
+    sock = LOGIN_NO_PERM;
     break;
 
   case HIPPISWD_RSP_ERROR:
     printf("Daemon reports error in connection.\n");
     close(sock);
-    sock = ERROR;
+    sock = LOGIN_BAD_CONNECT;
     break;
 
   case HIPPISWD_RSP_BAD_REQ:
     printf("Request not supported by daemon.\n");
     close(sock);
-    sock = ERROR;
+    sock = LOGIN_BAD_CONNECT;
     break;
 
   case HIPPISWD_RSP_BAD_MAGIC:
     printf("Bad Magic String.\n");
     close(sock);
-    sock = ERROR;
+    sock = LOGIN_BAD_CONNECT;
     break;
 
   case HIPPISWD_RSP_DUMP:
@@ -575,7 +608,7 @@ login_to_daemon(request, daemon_host, daemon_port)
     printf("Unknown response '%c' from daemon.\n",
 	   response->code);
     close(sock);
-    sock = ERROR;
+    sock = LOGIN_BAD_CONNECT;
     break;
   }
     
@@ -616,16 +649,16 @@ usage(myname)
   fprintf(stderr, "\t-f <file>          Specify file to use as input.\n");
   fprintf(stderr, "\t-l                 Log session.\n");
   fprintf(stderr, "\t-n                 Don't log session (default).\n");
-  fprintf(stderr, "\t-u			Usurp any current connection.\n");
-  fprintf(stderr, "\t-P			Force password request.\n");
-  fprintf(stderr, "\t\v			Print version information and exit.\n");
+  fprintf(stderr, "\t-u                 Usurp any current connection.\n");
+  fprintf(stderr, "\t-P                 Force password request.\n");
+  fprintf(stderr, "\t-v                 Print version information and exit.\n");
 
   fprintf(stderr, "\n  Commands:\n");
-  fprintf(stderr, "\tdefault		Log on to switch.\n");
-  fprintf(stderr, "\t-d			Request dump.\n");
+  fprintf(stderr, "\tdefault\t\tLog on to switch.\n");
+  fprintf(stderr, "\t-d                 Request dump.\n");
   fprintf(stderr, "\t-s                 Ping daemon.\n");
-  fprintf(stderr, "\t-k			Kill daemon.\n");
-  fprintf(stderr, "\t-r			Restart daemon.\n");
+  fprintf(stderr, "\t-k                 Kill daemon.\n");
+  fprintf(stderr, "\t-r                 Restart daemon.\n");
 
 
   fprintf(stderr, "\n\t<switch>           Name of switch to connect to.\n");
@@ -793,3 +826,23 @@ handle_user_input(input_file, connected, daemon_fd, got_prompt, request)
   return FALSE;
 }
       
+
+/*
+ *	Get the password from the user and store in the request
+ *	structure.
+ *
+ *	exit if the user enters a null password.
+ */
+static void
+get_password(request)
+     CLIENT_PACKET		*request;
+{
+  extern char *getpass PROTO((char *prompt));
+
+  strncpy(request->password,
+	      getpass("Enter hippiswd password: "),
+	      PASSWDLEN);
+
+  if (strlen(request->password) == 0)
+    exit(1);
+}

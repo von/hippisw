@@ -5,8 +5,6 @@
 
  o	Add support to harp for CM5, HP, and others.
  o	Add hosts/nets to be gatewayed by a dxe (?)
- o	Automate hippisw requesting password.
- o	Add checking on daemon to verify it's running on right machine.
 
 		Current bug list
 
