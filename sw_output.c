@@ -423,7 +423,7 @@ set_pathway_all(address, portlist)
     
   case HIPPISW_ES1:
     sprintf(command_str, "set destination %#3x to %2d allow\n",
-	    address, PRIMARY_PORT(portlist, address));
+	    address, PRIMARY_PORT(portlist, address)->swp_num);
     break;
   }
   
@@ -625,9 +625,12 @@ int port;
     sprintf(command_str, "counters %d r\n", port);
     break;
 
+  case HIPPISW_ES1:
+    sprintf(command_str, "set counters 0 %d\n", port);
+    break;
+    
   case HIPPISW_IOSC4:
   case HIPPISW_IOSC8:
-  case HIPPISW_ES1:
     /* Not supported */
     NULL_STRING(command_str);
     break;
@@ -665,9 +668,12 @@ clear_switch_stats()
     sprintf(command_str, "counters all r\n");
     break;
 
+  case HIPPISW_ES1:
+    sprintf(command_str, "set counters 0 all\n");
+    break;
+    
   case HIPPISW_IOSC4:
   case HIPPISW_IOSC8:
-  case HIPPISW_ES1:
     /* Not supported */
     NULL_STRING(command_str);
     break;

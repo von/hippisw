@@ -2,17 +2,6 @@
 
 		CHANGES
 
-From previous version (unlabeled) to 0.1 Beta:
-
-	Code nearly completely rewritten. Functional changes include:
-	  -Ports that need to be disabled (PS32 18C boards) must now be
-	   so indicated in the config.hippi file with the 'needdisabled'
-	   option.
-	  -Added ablitiy to dynamically configure most daemon parameters.
-	  -Seperate address line in configuration file for address-
-	   related stuff.
-	  -Different types of default logical address are selectable.
-
 From 0.1 Beta to 0.2 Beta:
 
 	BUG FIX: hippiswd was calling abort() on segment violation
@@ -41,3 +30,18 @@ From 0.1 Beta to 0.2 Beta:
 		in order to standardize with mksw.
 	BUG FIX: harp and other utilities would print NULL for a
 		temporary hippi-xx address.
+	BUG FIX: fixed bug with mksw outputing port numbers for ES1
+		switches incorrectly.
+	ADDED: ES1 support to hippi_cmd for clearing port stats.
+
+From previous version (unlabeled) to 0.1 Beta:
+
+	Code nearly completely rewritten. Functional changes include:
+	  -Ports that need to be disabled (PS32 18C boards) must now be
+	   so indicated in the config.hippi file with the 'needdisabled'
+	   option.
+	  -Added ablitiy to dynamically configure most daemon parameters.
+	  -Seperate address line in configuration file for address-
+	   related stuff.
+	  -Different types of default logical address are selectable.
+

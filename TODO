@@ -6,12 +6,13 @@
  o	Add support to harp for CM5, HP, and others.
  o	Add hosts/nets to be gatewayed by a dxe (?)
  o	Log failed password, failed connect, any failed write to switch
+	(Done?)
  o	Combine log and syslog stuff.
  o	Check syslog() stuff: failed connection, bad password, message on
 		connection, dying and killed.
  o	Add logging on daemon for address from accept call.
-
+ o	Add setting of page size for ES-1.
 
 		Current bug list
 
-<None known>
+ o	Disabling of ports broken.
