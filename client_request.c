@@ -204,9 +204,8 @@ handle_logon(client_sock, request)
   /*
    *	All cleared to log on.
    */
-  log("Logging %s@%s onto switch %s.\n",
-      request->username, request->hostname,
-      sw->sw_name);
+  log_message(sw->sw_name, "Client %s@%s connected.\n",
+      request->username, request->hostname);
   request->code = HIPPISWD_RSP_OK;
   if (send_response(client_sock, request) == NO_ERROR)
     new_client(conn, client_sock, request->username,

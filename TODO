@@ -10,8 +10,8 @@
  o	Combine log and syslog stuff.
  o	Check syslog() stuff: failed connection, bad password, message on
 		connection, dying and killed.
- o	Add logging on daemon for address from accept call.
  o	Add setting of page size for ES-1.
+ o	Add tcpwrapper-type connection control.
  o	After disconnection, wait a little before reconnecting to give
 	terminal server a chance to clear the port.
  o	Update Makefile to use install.

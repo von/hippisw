@@ -503,14 +503,18 @@ accept_new_client(server_sock)
      int			server_sock;
 {
   int				client_sock;
-
+  /* XXX  Making assumption about address type */
+  struct sockaddr_in		addr; 
+  int				addrlen = sizeof(addr);
   
-  client_sock = accept(server_sock, NULL, NULL);
+  client_sock = accept(server_sock, (struct sockaddr *) &addr, &addrlen);
 
   if (client_sock == -1) {
     log("Error accepting new client (errno = %d)\n", errno);
     return CLOSED_SOCK;
   }
+
+  log("Accepted connection from %s\n", netaddr_to_ascii(addr.sin_addr.s_addr));
 
   return client_sock;
 }
