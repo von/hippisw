@@ -21,12 +21,12 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/termios.h>
-#include <strings.h>
+#include <string.h>
+
 
 #ifdef HIPPISWD_MAKE_CORE
 #include <sys/resource.h>
 #endif
-
 
 static void usage		PROTO((char *myname));
 static void background		PROTO((VOID));
@@ -87,7 +87,7 @@ main(argc, argv)
   hippiswd_argv = argv;
 
   /*	Chop off path from name		*/
-  myname = rindex(argv[0], '/');
+  myname = strrchr(argv[0], '/');
 
   if (myname == NULL)
     myname = argv[0];
@@ -473,9 +473,9 @@ create_server_sock()
    *	Make it so we can reuse address for quick restarts.
    */
   setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-	     &reuseaddr, sizeof(reuseaddr));
+	     (char *) &reuseaddr, sizeof(reuseaddr));
   
-  if (bind(sock, &addr, sizeof(addr)) == -1) {
+  if (bind(sock, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
     perror("bind()");
     exit(1);
   }

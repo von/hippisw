@@ -10,6 +10,11 @@ From 0.2.1 to 0.2.2:
 		dot addresses immediately. This fixes some problems with
 		harp printing the temporary name when it needs to print
 		a dot address.
+	PORTED: Solaris 2.4
+	CHANGED: From index(), rindex() to strchr(), strrchr().
+	ADDED: Created script called "configure" that checks OS type and
+		builds an include file for the Makefile.
+	CHANGED: Moved configurable makefile flags to make.defs.
 
 From 0.2 Beta to 0.2.1 Beta:
 	BUG FIX: Disabling of ports was broken.

@@ -9,8 +9,6 @@
 #include "connections.h"
 
 #include <string.h>
-#include <strings.h>
-
 
 
 Boolean

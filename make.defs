@@ -1,0 +1,47 @@
+###########################################################################
+#
+#	Configurable make options
+#
+#	See INSTALLATION for full details.
+#
+#	$Id: make.defs,v 1.1 1995/05/06 22:34:08 vwelch Exp $
+#
+###########################################################################
+
+#	Configurable parameters
+
+MAGIC_STRING	=	hippi
+
+CONFIG_FILE	=	/usr/local/etc/hippisw/config.hippi
+
+BIN_DIR		=	/usr/local/etc/hippisw/
+MAN_DIR		=	/usr/local/man
+
+#
+# Normally the hippiswd daemon only requires a password for killing and
+# restarting it. If you want any connection to the daemon to require
+# a password define HIPPISWD_REQUIRE_PASSWD.
+
+#REQUIRE_PASSWORD	=	-DHIPPISWD_REQUIRE_PASSWD
+
+# If defined this sets the facility used by hippiswd to log events.
+# By default it uses LOG_DAEMON.
+
+#SYSLOG_FACILITY	=	-DLOG_DAEMON
+
+
+###########################################################################
+#
+#	Possibles debugging defines:
+#	-DHIPPISW_MAKE_CORE	hippiswd should make core on segment
+#				or bus violations instead of exiting
+#				gracefully.
+#
+# 	The following need to be combine with -DDEBUG.
+#	-DDEBUG_CONF		Debug configuration reading routines.
+#	-DDEBUG_PORTLIST	Debug portlist routines.
+#	-DDEBUG_SWITCHLIST	Debug switchlist routines.
+#	-DDEBUG_SWMAP		Debug switchmap building routines.
+#
+
+#DEBUG		=	-DDEBUG

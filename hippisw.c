@@ -19,7 +19,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <strings.h>
 
 
 static void usage		PROTO((char *name));
@@ -423,7 +422,7 @@ handle_logon(request, daemon_host, daemon_port, input_filename)
     if (connected)
       FD_SET(daemon_fd, &readfds);
 
-    if (select(max_fd, &readfds, NULL, NULL, NULL, NULL) < 0) {
+    if (select(max_fd, &readfds, NULL, NULL, NULL) < 0) {
       perror("select()");
       exit(1);
     }
@@ -486,7 +485,7 @@ login_to_daemon(request, daemon_host, daemon_port)
   bcopy(hostent->h_addr, &(addr.sin_addr), hostent->h_length);
   addr.sin_port = htons(daemon_port);
 
-  if (connect(sock, &addr, sizeof(addr)) == -1) {
+  if (connect(sock, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
     fprintf(stderr, "Couldn't connect to daemon (%s port %d).\n",
 	    daemon_host, daemon_port);
     perror("connect()");
@@ -769,7 +768,7 @@ handle_user_input(input_file, connected, daemon_fd, got_prompt, request)
   /*
    *	Strip comments.
    */
-  comment = index(buffer, COMMENT_CHAR);
+  comment = strchr(buffer, COMMENT_CHAR);
 
   if (comment != NULL)
     *comment = '\0';

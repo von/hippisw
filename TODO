@@ -15,6 +15,7 @@
  o	After disconnection, wait a little before reconnecting to give
 	terminal server a chance to clear the port.
  o	Update Makefile to use install.
+ o	harp convex output: remove old route before adding new
 
 
 		Current bug list

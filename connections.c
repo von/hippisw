@@ -347,7 +347,7 @@ do_connect(hostname, port)
   bcopy(hostent->h_addr, &(addr.sin_addr), hostent->h_length);
   addr.sin_port = htons(port);
 
-  if (connect(sock, &addr, sizeof(addr)) == -1) {
+  if (connect(sock, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
     close(sock);
     return CONNECT_FAILED;
   }

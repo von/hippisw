@@ -48,7 +48,7 @@ netaddr_to_fullname(netaddr)
   struct hostent	*hinfo;
   static char		str[HNAMELEN];
 
-  hinfo = gethostbyaddr(&netaddr, sizeof(netaddr), AF_INET);
+  hinfo = gethostbyaddr((char *) &netaddr, sizeof(netaddr), AF_INET);
 
   if (hinfo == NULL) {	/* Punt */
     sprintf(str, "%u.%u.%u.%u",
@@ -143,3 +143,4 @@ handle_hippi_addr(name, netaddr)
 
   return NO_ERROR;
 }
+

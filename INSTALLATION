@@ -5,7 +5,8 @@
 Platforms tested on:
 	SUN IPC running SunOS 4.1.2
 	SGI Indy running IRIX 5.2
-	
+	SUN Sparc 5 running SunOS 5.4
+
 It should compile and work on about any Unix platform. If you run into
 any problems or do any ports please let me know.
 
@@ -100,3 +101,4 @@ any problems or do any ports please let me know.
 	detail in hippi_utils(8).
 
 Von Welch (vwelch@ncsa.uiuc.edu)
+$Id: INSTALLATION,v 1.5 1995/05/06 22:33:57 vwelch Exp $

@@ -4,7 +4,7 @@
  *	Command front end for get statistics from the switches.
  *	Output meant to be piped into hippisw.
  *
- *	$Id: hippi_cmd.c,v 1.1 1995/02/28 23:17:20 vwelch Exp $
+ *	$Id: hippi_cmd.c,v 1.2 1995/05/06 22:34:03 vwelch Exp $
  *
  */
 
@@ -15,8 +15,9 @@
 #include "switch.h"
 #include "sw_output.h"
 
-#include <strings.h>
+
 #include <stdio.h>
+#include <string.h>
 
 
 enum cmd_types {		/* Commands				*/
@@ -117,7 +118,7 @@ main(argc, argv)
 
   /* Check for "<port number>@<switch>"
    */
-  if (index(what, '@') != NULL) {
+  if (strchr(what, '@') != NULL) {
     char swname[SWNAMELEN];
 
     sscanf(what, "%d@%s", &port_num, swname);
