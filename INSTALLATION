@@ -46,7 +46,7 @@ any problems or do any ports please let me know.
 
 4) Edit config.hippi to reflect the hippi network at your site. See
 	hippi_config(5) for a description of what this file should look
-	like. hippi.config.EXAMPLE is also included as an example.
+	like. EXAMPLES_CONFIGS/hippi.config is also included as an example.
 	This file then needs to be placed in the location specified by
 	the CONFIG_FILE variable in the Makefile.
 
@@ -58,9 +58,9 @@ any problems or do any ports please let me know.
 6) Edit config.hippi.password to contain any passwords the hippiswd daemon
 	will need to talk to your switches as well as the password the client
 	needs to talk to it. See config_hippi_password(5) for a description.
-	See config.hippi.password.EXAMPLE for an example. This file then needs
-	to be put in the hippiswd working directory. The permissions should
-	be set strict as possible on this file.
+	See EXAMPLES_CONFIGS/config.hippi.password for an example. This file
+	then needs to be put in the hippiswd working directory. The
+	permissions should be set strict as possible on this file.
 
 7) Run 'hippi_config'. This should come back with a parsed form the the
 	config.hippi file. Look for any warnings or errors at the beginning
