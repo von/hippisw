@@ -6,6 +6,7 @@
 
 #include "basic_defines.h"
 #include "connections.h"
+#include "client_request.h"
 
 
 
@@ -74,6 +75,17 @@ write_to_switch(conn, string, len)
 
 
 /*
+ *	Send a CR to a switch
+ */
+int
+ping_switch(conn)
+Connection			*conn;
+{
+    return write_to_switch(conn, "\n", 1);
+}
+
+
+/*
  *	Write a string to the client.
  */
 int
@@ -82,15 +94,16 @@ write_to_client(conn, string, len)
      char			*string;
      int			len;
 {
-  char				length;
+    DAEMON_PACKET		packet;
 
-  len++;				/* Include NULL */
+    packet.flags = 0;
 
-  length = (char) len;
+    if (conn->got_prompt)
+	packet.flags |= DAEMON_PKT_GOT_PROMPT;
 
-  write(conn->client_sock, &length, sizeof(char));
-	
-  return write(conn->client_sock, string, len);
+    strcpy(packet.string, string);
+
+    return write(conn->client_sock, &packet, sizeof(packet));
 }
 
 

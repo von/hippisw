@@ -12,12 +12,14 @@
 
 
 int write_to_switch		PROTO((Connection *conn,
-				       char *buffer,
-				       int len));
+							   char *buffer,
+							   int len));
+
+int ping_switch			PROTO((Connection *conn));
 
 int write_to_client		PROTO((Connection *conn,
-				       char *string,
-				       int len));
+							   char *string,
+							   int len));
 
 
 #endif /* _HANDLE_OUTPUT_H */

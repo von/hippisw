@@ -28,23 +28,33 @@
 #include <sys/resource.h>
 #endif
 
-static void usage				PROTO((char *myname));
+static void usage			PROTO((char *myname));
 static void background			PROTO((VOID));
-static void register_signals	PROTO((VOID));
+static void register_signals		PROTO((VOID));
 static void signal_catcher		PROTO((int signum));
-static int create_server_sock	PROTO((VOID));
-static int accept_new_client	PROTO((int server_sock));
+static int create_server_sock		PROTO((VOID));
+static int accept_new_client		PROTO((int server_sock));
 static int read_pid_file		PROTO((VOID));
 static void make_pid_file		PROTO((VOID));
 static void remove_pid_file		PROTO((VOID));
-void graceful_death				PROTO((int exit_status));
-void restart					PROTO((VOID));
-static void cleanup				PROTO((char *reason));
+void graceful_death			PROTO((int exit_status));
+void restart				PROTO((VOID));
+static void cleanup			PROTO((char *reason));
 static void check_host			PROTO((char *specified_host,
-									   char *actual_host));
+					       char *actual_host));
 
-
+/*
+ * Name of the file to store our process ID in.
+ */
 #define HIPPISWD_PID_FILE	"hippiswd.pid"
+
+
+/*
+ * Minimum time in between polling for input.
+ */
+#define POLL_INTERVAL	15
+
+
 
 /*
  * Global variables and why they have to be global.
@@ -187,7 +197,7 @@ main(argc, argv)
 
   /*	Time in between attempts to establish connections to a switch	*/
   timeout.tv_usec = 0;
-  timeout.tv_sec = 15;
+  timeout.tv_sec = POLL_INTERVAL;
 
   /*
    *	Background ourselves.
@@ -222,78 +232,142 @@ main(argc, argv)
    *		MAIN LOOP
    */
   while (!done) {
-    fd_set			readfds, exceptfds;
-    Connection		*conn;
-    int				conn_num;
-    static int		client_sock = CLOSED_SOCK;
+      fd_set			readfds, exceptfds;
+      Connection		*conn;
+      int			conn_num;
+      static int		client_sock = CLOSED_SOCK;
+      static time_t		last_ping_time = 0;
+      time_t			current_time;
 
 
-    /*
-     *	Try to connect to any switches we aren't yet connected to.
-     *
-     *	Poll all the following for input:
-     *	1. The HIPPI switch connections.
-     *	2. Current active clients.
-     *	3. Server port.
-     *	4. New client (client_sock) trying to connect.
-     *
-     *	If unable to connect to one or more switches set a timeout
-     *	on select to try again.
-     */
-    FD_ZERO(&readfds);
+      /*
+       *	Try to connect to any switches we aren't yet connected to.
+       *
+       *	Poll all the following for input:
+       *	1. The HIPPI switch connections.
+       *	2. Current active clients.
+       *	3. Server port.
+       *	4. New client (client_sock) trying to connect.
+       *
+       *	If unable to connect to one or more switches set a timeout
+       *	on select to try again.
+       */
+      FD_ZERO(&readfds);
 
-    select_timeout = NULL;	/* Wait indefinitely by default	*/
+      select_timeout = NULL;	/* Wait indefinitely by default	*/
 
-    FOR_ALL_CONNECTIONS(conn, conn_num) {
+      FOR_ALL_CONNECTIONS(conn, conn_num) {
       
-		if ((conn->switch_state == NO_CONNECTION) && (!debug))
-			if (open_switch_conn(conn) == ERROR)
-				select_timeout = &timeout;
+	  if ((conn->switch_state == NO_CONNECTION) && (!debug))
+	      if (open_switch_conn(conn) == ERROR)
+		  select_timeout = &timeout;
 
-		if (conn->switch_state == CONNECTION_ESTABLISHED)
-			FD_SET(conn->sw_sock, &readfds);
+	  if (conn->switch_state == CONNECTION_ESTABLISHED)
+	      FD_SET(conn->sw_sock, &readfds);
 
-		if (conn->client_state == CONNECTION_ESTABLISHED)
-			FD_SET(conn->client_sock, &readfds);
-	}
+	  if (conn->client_state == CONNECTION_ESTABLISHED)
+	      FD_SET(conn->client_sock, &readfds);
+      }
 
-    FD_SET(server_sock, &readfds);
+      FD_SET(server_sock, &readfds);
     
-    if (client_sock != CLOSED_SOCK)
-		FD_SET(client_sock, &readfds);
+      if (client_sock != CLOSED_SOCK)
+	  FD_SET(client_sock, &readfds);
     
-    /* Also check for exceptions. */
-    bcopy(&readfds, &exceptfds, sizeof(exceptfds));
+      /* Also check for exceptions. */
+      bcopy(&readfds, &exceptfds, sizeof(exceptfds));
 
-    if (select(max_fd, &readfds, NULL, &exceptfds, select_timeout) < 0) {
-		log("select() error (errno = %d)\n", errno);
-		syslog(SYSLOG_DIED, "select() failed (%m). Exiting.");
-		graceful_death(1);
-    }
 
-    FOR_ALL_CONNECTIONS(conn, conn_num) {
+      /*
+       * Check all switches we're connected to and see if we haven't
+       * gotten a prompt from yet. We want to ping these switches to
+       * solicit a prompt.
+       */
+      current_time = time(NULL);
 
-		if ((conn->client_state == CONNECTION_ESTABLISHED) &&
-			(FD_ISSET(conn->client_sock, &readfds) ||
-			 FD_ISSET(conn->client_sock, &exceptfds)))
-			handle_client_input(conn);
+      if (last_ping_time == 0)
+	  last_ping_time = current_time;
+
+
+      if (current_time - last_ping_time >= POLL_INTERVAL) {
+
+	  /*
+	   * It's been a while so go ahead and ping any switches that need
+	   * it.
+	   */
+	  last_ping_time = current_time;
+
+	  FOR_ALL_CONNECTIONS(conn, conn_num) {
+	      if ((conn->got_prompt == 0) &&
+		  (conn->switch_state == CONNECTION_ESTABLISHED) &&
+		  (conn->client_state != CONNECTION_ESTABLISHED)) {
+
+		  log("Pinging %s\n", conn->sw->sw_name);
+
+		  ping_switch(conn);
+	      }
+
+	  }
+
+      } else {
+	  /*
+	   * It hasn't been very long since the last time we pinged
+	   * so we'll just check to see if any switches need pinging
+	   * and if so set the select timeout so we'll check again soon.
+	   */
+	  FOR_ALL_CONNECTIONS(conn, conn_num) {
+	      if ((conn->got_prompt == 0) &&
+		  (conn->switch_state == CONNECTION_ESTABLISHED))
+		  select_timeout = &timeout;
+	  }
+
+      }
+
+
+      /*
+       * Do the select()
+       */
+      if (select(max_fd, &readfds, NULL, &exceptfds, select_timeout) < 0) {
+	  log("select() error (errno = %d)\n", errno);
+	  syslog(SYSLOG_DIED, "select() failed (%m). Exiting.");
+	  graceful_death(1);
+      }
+
       
-		if ((conn->switch_state == CONNECTION_ESTABLISHED) &&
-			(FD_ISSET(conn->sw_sock, &readfds) ||
-			 FD_ISSET(conn->sw_sock, &exceptfds)))
-			handle_switch_input(conn);
-    }
+      /*
+       * Handle all pending input.
+       */
+      FOR_ALL_CONNECTIONS(conn, conn_num) {
+
+	  if ((conn->client_state == CONNECTION_ESTABLISHED) &&
+	      (FD_ISSET(conn->client_sock, &readfds) ||
+	       FD_ISSET(conn->client_sock, &exceptfds)))
+	      handle_client_input(conn);
+      
+	  if ((conn->switch_state == CONNECTION_ESTABLISHED) &&
+	      (FD_ISSET(conn->sw_sock, &readfds) ||
+	       FD_ISSET(conn->sw_sock, &exceptfds)))
+	      handle_switch_input(conn);
+      }
 
 
-    if ((client_sock != CLOSED_SOCK) &&
-		(FD_ISSET(client_sock, &readfds) ||
-		 FD_ISSET(client_sock, &exceptfds))) {
-		handle_client_request(client_sock);
-		client_sock = CLOSED_SOCK;
-    }
+      /*
+       * Handle request for any client that has connected, but hasn't
+       * send a reqest yet.
+       */
+      if ((client_sock != CLOSED_SOCK) &&
+	  (FD_ISSET(client_sock, &readfds) ||
+	   FD_ISSET(client_sock, &exceptfds))) {
+	  handle_client_request(client_sock);
+	  client_sock = CLOSED_SOCK;
+      }
     
-    if (FD_ISSET(server_sock, &readfds) && (client_sock == CLOSED_SOCK))
-		client_sock = accept_new_client(server_sock);
+      /*
+       * Handle any new client connections.
+       */
+      if (FD_ISSET(server_sock, &readfds) && (client_sock == CLOSED_SOCK))
+	  client_sock = accept_new_client(server_sock);
+
   }
 }
     

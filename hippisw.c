@@ -35,8 +35,7 @@ static int login_to_daemon	PROTO((CLIENT_PACKET *request,
 
 static int handle_daemon_input	PROTO((int daemon_fd,
 				       FILE *output_file,
-				       Boolean *got_prompt,
-				       char *prompt));
+				       Boolean *got_prompt));
 
 static Boolean handle_user_input  	PROTO((FILE* input_file,
 					       Boolean *connected,
@@ -431,8 +430,7 @@ handle_logon(request, daemon_host, daemon_port, input_filename)
      *  Input from daemon?
      */
     if (connected && FD_ISSET(daemon_fd, &readfds))
-      if (handle_daemon_input(daemon_fd, output_file, &got_prompt,
-			      request->sw_prompt) == ERROR)
+      if (handle_daemon_input(daemon_fd, output_file, &got_prompt) == ERROR)
 	break;
 
     /*
@@ -630,6 +628,7 @@ init_request(request)
   strncpy(request->username, cuserid(NULL), UNAMELEN);
   gethostname(request->hostname, HNAMELEN);
   sprintf(request->pid, "%d", getpid());
+  strncpy(request->version, HIPPISW_VERSION, VERSIONLEN);
 }
 
 
@@ -668,64 +667,52 @@ usage(myname)
  *	Returns NO_ERROR or ERROR on disconnections.
  */
 static int
-handle_daemon_input(daemon_fd, user_file, got_prompt, prompt)
+handle_daemon_input(daemon_fd, user_file, got_prompt)
      int			daemon_fd;
      FILE			*user_file;
      Boolean			*got_prompt;
-     char			*prompt;
 {
-  char				buffer[BUFFERLEN];
-  char				len;
-  int				bytes_read;
+    DAEMON_PACKET		packet;
+    int				total_read = 0;
   
-  /*
-   *	Read length of string.
-   */
-  bytes_read = read(daemon_fd, &len, sizeof(len));
+    /*
+     * Read packet from daemon
+     */
+    while (total_read < sizeof(packet)) {
+	int bytes_read;
 
-  if (bytes_read == 0) {
-    fprintf(user_file, "\nDaemon closed connection.\n");
-    close(daemon_fd);
-    return ERROR;
-  }
+	bytes_read = read(daemon_fd,
+			  &packet + total_read,
+			  sizeof(packet) - total_read);
 
-  if (bytes_read < 0) {
-    perror("read()");
-    close(daemon_fd);
-    return ERROR;
-  }
-  
-  /*
-   *	Read string.
-   */
-  bytes_read = read(daemon_fd, buffer, len);
+	if (bytes_read == 0) {
+	    fprintf(user_file, "\nDaemon closed connection.\n");
+	    close(daemon_fd);
+	    return ERROR;
+	}
 
-  if (bytes_read == 0) {
-    fprintf(user_file, "\nDaemon closed connection.\n");
-    close(daemon_fd);
-    return ERROR;
-  }
+	if (bytes_read < 0) {
+	    perror("read()");
+	    close(daemon_fd);
+	    return ERROR;
+	}
 
-  if (bytes_read < 0) {
-    perror("read()");
-    close(daemon_fd);
-    return ERROR;
-  }
- 
-  /*
-   * If the string doesn't end with a carriage return, assume it's
-   * a prompt.
-   */
- if (buffer[strlen(buffer) - 1] != '\n')
-    *got_prompt = TRUE;
+	total_read += bytes_read;
+    }
 
-  /*
-   *	Echo it to the user.
-   */
-  fprintf(user_file, buffer);
-  fflush(user_file);
+    /*
+     * Parse flags
+     */
+    *got_prompt =
+	(packet.flags & DAEMON_PKT_GOT_PROMPT) == DAEMON_PKT_GOT_PROMPT;
 
-  return NO_ERROR;
+    /*
+     *	Echo string to the user.
+     */
+    fprintf(user_file, packet.string);
+    fflush(user_file);
+
+    return NO_ERROR;
 }
 
 

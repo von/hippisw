@@ -51,15 +51,26 @@ handle_client_request(client_sock)
   }
 
   /*
+   *	Check Version
+   */
+  if (strcmp(HIPPISW_VERSION, request.version) != 0) {
+	  log("Received bad version. Dropping connection.\n");
+	  request.code = HIPPISWD_RSP_BAD_VER;
+	  send_response(client_sock, &request);
+	  close(client_sock);
+	  return;
+  }
+
+  /*
    *	Check MAGIC
    */
   if (strcmp(daemon_config.magic_string, request.magic) != 0) {
-    log("Received bad magic string (%s) from %s@%s.\n",
-	request.magic, request.username, request.hostname);
-    request.code = HIPPISWD_RSP_BAD_MAGIC;
-    send_response(client_sock, &request);
-    close(client_sock);
-    return;
+	  log("Received bad magic string (%s) from %s@%s.\n",
+		  request.magic, request.username, request.hostname);
+	  request.code = HIPPISWD_RSP_BAD_MAGIC;
+	  send_response(client_sock, &request);
+	  close(client_sock);
+	  return;
   }
 
   /*
@@ -142,7 +153,6 @@ handle_logon(client_sock, request)
   }
 
   strcpy(request->sw_name, sw->sw_name);
-  strcpy(request->sw_prompt, sw->sw_prompt);
 
   conn = get_connection(sw);
 

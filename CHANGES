@@ -10,6 +10,13 @@ In Working Copy:
 		die in hippiswd.c
 	CLEANUP: When we're failing to connect to a switch we don't log
 		it every time we try and fail, just the first.
+	ADDED: Version checking between client and daemon.
+	CLEANUP: We now start logging unexpected output after we see the
+		first prompt from switch instead of relying on yet another
+		string.
+	BUG FIX: Prompt detection and flow control now work correctly.
+		Ability to detect multiple prompts added. List in
+		switch.c.
 
 From 0.2.2 to 0.2.3:
 	ADDED: Daemon now logs IP address of connecting client.

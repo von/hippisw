@@ -51,11 +51,10 @@ struct switch_attributes {
   Boolean	is_smart;
   Boolean	has_default;
   int		bits_shifted;
+  char		**prompts;   
 };
   
 struct switch_attributes *get_sw_attributes	PROTO((SW_TYPE type));
-char *get_sw_prompt				PROTO((SW_TYPE type,
-						       int version));
 
 struct sw	{			/* Switch description structure	*/
   char		sw_name[SWNAMELEN]; 	/* Switch name			*/
@@ -66,7 +65,6 @@ struct sw	{			/* Switch description structure	*/
   PORTLIST	*sw_ports; 		/* Pointer to port list		*/
   char		sw_hostname[HNAMELEN]; 	/* Telnet host name		*/
   int		sw_tport;		/* Telnet port number		*/
-  char		sw_prompt[PROMPTLEN]; 	/* Switch's command prompt	*/
   int		sw_linenum;		/* config file line number	*/
   char		sw_comment[COMMENTLEN]; /* Comment from config file line*/
   struct sw_port	*sw_virt_attached;
@@ -75,9 +73,6 @@ struct sw	{			/* Switch description structure	*/
 					      are attached to. NULL for
 					      all other switches.	*/
   char		sw_password[PASSWDLEN]; /* Password for switch		*/
-  char		sw_start_log[STARTLOGLEN];
-  					/* String to start logging of
-					   unexpected events		*/
   struct sw	*sw_next;		/* For the list			*/
 };
 
@@ -88,7 +83,7 @@ typedef struct sw	SWITCH;
 #define	sw_is_smart	sw_attributes.is_smart
 #define	sw_has_default	sw_attributes.has_default
 #define	sw_bits_shifted	sw_attributes.bits_shifted
-
+#define sw_prompts	sw_attributes.prompts
 
 #define FOR_EACH_SW_PORT(sw, port)	\
 	FOR_EACH_PORT((sw)->sw_ports, port)

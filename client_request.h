@@ -12,6 +12,7 @@
 
 
 typedef struct {
+  char		version[VERSIONLEN];	/* client version		*/
   char		magic[MAGICLEN];	/* Magic string			*/	
   char		code;			/* Request/response code	*/
   char		flags;			/* Request flags		*/
@@ -21,7 +22,6 @@ typedef struct {
   char		hostname[HNAMELEN];	/* Client host	 		*/
   char		pid[PIDLEN];		/* Client process ID		*/
   char		idle_time[TIMELEN];	/* For busy reponse		*/
-  char		sw_prompt[PROMPTLEN];	/* Switch prompt returned	*/	
 } CLIENT_PACKET;
 
 /*
@@ -53,6 +53,7 @@ typedef struct {
 #define HIPPISWD_RSP_BAD_REQ    'Q'     /* Bad request			*/
 #define HIPPISWD_RSP_BAD_MAGIC	'M'	/* Bad magic string		*/
 #define HIPPISWD_RSP_DUMP	'D'	/* Dump response		*/
+#define HIPPISWD_RSP_BAD_VER	'V'	/* Version mismatch		*/
 
 
 void handle_client_request		PROTO((int client_sock));
@@ -74,5 +75,20 @@ void handle_client_request		PROTO((int client_sock));
 	 ((request)->flags & HIPPISWD_FLG_USURP))
 
 #endif /* HIPPISWD_REQUIRE_PASSWD */
+
+/*
+ * Header for strings send from daemon to client
+ */
+typedef struct {
+    char	flags;			/* Flags			*/
+    char	string[BUFFERLEN];	/* String itself		*/
+} DAEMON_PACKET;
+
+/*
+ * Flags for DAEMON_PACKET
+ */
+#define DAEMON_PKT_GOT_PROMPT	0x01	
+				/* Daemon has gotten prompt from switch */
+
 
 #endif /* _CLIENT_REQUEST_H */

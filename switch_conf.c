@@ -106,12 +106,10 @@ switch_conf()
   sw->sw_ports = NULL;
   NULL_STRING(sw->sw_hostname);
   sw->sw_tport = TELNET_PORT;
-  NULL_STRING(sw->sw_prompt);
   sw->sw_linenum = parsed_linenumber();
   NULL_STRING(sw->sw_comment);
   sw->sw_virt_attached  = NULL;
   NULL_STRING(sw->sw_password);
-  NULL_STRING(sw->sw_start_log);
   
   /*
    *	Read rest of options
@@ -161,8 +159,8 @@ switch_conf()
       break;
 
     case KEYWD_PROMPT:
-      strncpy(sw->sw_prompt, argument, PROMPTLEN);
-      break;
+	config_error("\"prompt\" no longer supported. Skipping.\n");	
+	break;
 
     case KEYWD_SMS:
       if (is_numeric(argument) == FALSE) {
@@ -178,14 +176,10 @@ switch_conf()
       break;
 
     case KEYWD_START_LOG:
-      strncpy(sw->sw_start_log, argument, STARTLOGLEN);
+	config_error("\"start_log\" no longer supported.\n");
+	continue;
     }
   }
-
-  /* If switch prompt was not set, set it to the default
-   */
-  if (strlen(sw->sw_prompt) == 0)
-    strcpy(sw->sw_prompt, get_sw_prompt(sw->sw_type, sw->sw_version));
 
   if ((sw->sw_num = add_switch(sw)) == ERROR) {
     config_error("Error adding switch to list.\n");

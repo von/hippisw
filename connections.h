@@ -30,9 +30,8 @@ typedef struct	{
   int			telnet_state;		/* For telnet()		*/
   SWITCH		*sw;			/* Switch		*/
   Boolean		got_prompt;		/* Gotten prompt?	*/
-  char			prompt_char;		/* Last char of prompt	*/
-  Boolean		log_unexpected;		/* Log unexpected output? */
   Boolean		sent_init;		/* Have we inited switch? */
+  Boolean		log_unexpected;		/* Log unexpected output? */
   int			sw_sock;		/* Socket to switch	*/
   FILE			*sw_in;			/* Stream from switch	*/
   FILE			*sw_out;		/* Stream to switch	*/

@@ -22,8 +22,7 @@
 static int read_from_switch	        PROTO((Connection *conn,
 				        char *buffer,
 				        int len));
-static Boolean poll_switch		PROTO((Connection *conn,
-					       int timeout));
+static Boolean switch_input_waiting	PROTO((Connection *conn));
 static void send_sw_password		PROTO((Connection *conn));
 
 
@@ -34,9 +33,16 @@ static void send_sw_password		PROTO((Connection *conn));
 #define	MAX_PASSWORD_SENDS		5
 
 /*
- *	Seconds to wait for output from switch
+ *	Time to wait for input from switch during reading.
+ *
+ *	If this value is too small then input from the switch will
+ *	be unnaturally split up.
+ *
+ *	Currently .5 seconds.
  */
-#define SELECT_TIMEOUT			2	
+#define	SWITCH_INPUT_WAIT_USECS		500000
+#define SWITCH_INPUT_WAIT_SECS		0
+
 
 
 /*
@@ -44,92 +50,92 @@ static void send_sw_password		PROTO((Connection *conn));
  */
 void
 handle_switch_input(conn)
-     Connection			*conn;
+Connection			*conn;
 {
-  char				buffer[BUFFERLEN];
-  int				bytes_read;
-  Boolean			done = FALSE;
-  FILE				*to_logcmd = NULL;
+    char				buffer[BUFFERLEN];
+    int				bytes_read;
+    Boolean			done = FALSE;
+    FILE				*to_logcmd = NULL;
 
-  while (!done) {
+    while (!done) {
 
-    bytes_read = read_from_switch(conn, buffer, BUFFERLEN);
+	bytes_read = read_from_switch(conn, buffer, BUFFERLEN);
 
-    if ((bytes_read == ERROR) || (bytes_read == 0)) {
-      done = TRUE;
-      continue;
-    }
+	if ((bytes_read == ERROR) || (bytes_read == 0)) {
+	    done = TRUE;
+	    continue;
+	}
 
-    /*
-     *	Send string to client if connected
-     */
-    if (conn->client_sock != CLOSED_SOCK) {
-      write_to_client(conn, buffer, bytes_read);
+	if (conn->client_sock == CLOSED_SOCK) {
+	    /*
+	     * No one is connected to this switch currently.
+	     */
 
-      /*
-       * Log it, unless client has asked otherwise.
-       */
-      if (!(conn->flags & HIPPISWD_FLG_NOLOG))
-	  log_message(conn->sw->sw_name, buffer);
+	    log_message(conn->sw->sw_name, buffer);
 
-    } else {
-      /*
-       * Always log it if not connected.
-       */
-      log_message(conn->sw->sw_name, buffer);
-
-      /*
-       * Ignore NULL or carriage-return only strings.
-       */
-      if (strlen(buffer) < 2)
-	continue;
+	    /*
+	     * Ignore NULL or carriage-return only strings.
+	     */
+	    if (strlen(buffer) < 2)
+		continue;
       
-
-      if (conn->log_unexpected) {
-	if (to_logcmd == NULL)	  	    
-	  to_logcmd = open_log_cmd(conn->sw->sw_name);
+	    /*
+	     * Log this output if it's unexpected.
+	     */
+	    if (conn->log_unexpected) {
+		if (to_logcmd == NULL)	  	    
+		    to_logcmd = open_log_cmd(conn->sw->sw_name);
 	
-	if (to_logcmd != NULL)
-	  fprintf(to_logcmd, buffer);
-	  
-      } else {
+		if (to_logcmd != NULL)
+		    fprintf(to_logcmd, buffer);
+	    }
+	}
+    
 	/*
-	 * See if this is the start of log string.
+	 *	Check for password prompt
 	 */
-	int len = strlen(conn->sw->sw_start_log);
-	
-	if (len > 0)
-	  conn->log_unexpected =
-	    (strncmp(buffer, conn->sw->sw_start_log, len) == 0);
-      }
+	if (is_password_prompt(buffer)) {
+	    send_sw_password(conn);
+	    done = TRUE;
+	    continue;
+	}
+
+	/*
+	 *	Check for a prompt from the switch
+	 */
+	if (is_prompt(conn->sw, buffer)) {
+	    /*
+	     * If we have not already sent the init string then do so
+	     * now, otherwise we wait for user input.
+	     */
+	    if (conn->sent_init) {
+		conn->got_prompt = TRUE;
+		conn->log_unexpected = TRUE;
+		done = TRUE;
+
+	    } else {
+		sw_init(conn);
+		conn->sent_init = TRUE;
+	    }
+	}
+
+	/*
+	 *	Send string to client if connected
+	 */
+	if (conn->client_sock != CLOSED_SOCK) {
+	    write_to_client(conn, buffer, bytes_read);
+
+	    /*
+	     * Log it, unless client has asked otherwise.
+	     */
+	    if (!(conn->flags & HIPPISWD_FLG_NOLOG))
+		log_message(conn->sw->sw_name, buffer);
+
+	} 
     }
 
-    /*
-     *	Check for password prompt
-     */
-    if (is_password_prompt(buffer)) {
-      send_sw_password(conn);
-      done = TRUE;		/* XXX - should we keep reading here? */
-      continue;
-    }
-
-    if (is_prompt(conn, buffer)) {
-      /* If we have not already sent the init string then do so now, otherwise
-       * we wait for user input.
-       */
-      if (conn->sent_init) {
-        conn->got_prompt = TRUE;
-        done = TRUE;
-
-      } else {
-	sw_init(conn);
-	conn->sent_init = TRUE;
-      }
-    }
-  }
-
-  if (to_logcmd)
-    close_log_cmd(to_logcmd);
+    if (to_logcmd)
+	close_log_cmd(to_logcmd);
 }
 
 
@@ -183,7 +189,7 @@ read_from_switch(conn, buffer, len)
    *  for data first.
    */
   if (conn->last_status == TELNET_EOB)
-    if (poll_switch(conn, 0) == FALSE)
+    if (switch_input_waiting(conn) == FALSE)
       return 0;
 
   while(!done) {
@@ -213,7 +219,7 @@ read_from_switch(conn, buffer, len)
       return ERROR;
 
     case TELNET_EOB:
-      if (poll_switch(conn, SELECT_TIMEOUT) == FALSE)
+      if (switch_input_waiting(conn) == FALSE)
 		  done = TRUE;
       break;
 
@@ -229,10 +235,8 @@ read_from_switch(conn, buffer, len)
       buffer[bytes_read++] = (char) byte;
       buffer[bytes_read] = '\0';
       /* Are we done with the line?			*/
-      if (byte == '\n' ||
-		  (byte == conn->prompt_char && is_prompt(conn, buffer)) ||
-		  (byte == PASSWD_PROMPT_CHAR && is_password_prompt(buffer)))
-		  done = TRUE;
+      if (byte == '\n')
+	  done = TRUE;
     }
   }
 
@@ -242,14 +246,13 @@ read_from_switch(conn, buffer, len)
 
 
 /*
- *	Poll a switch for input.
+ *	Poll a switch for input giving a timeout.
  *
  *	Returns TRUE if data is waiting, FALSE otherwise.
  */
 static Boolean
-poll_switch(conn, wait_time)
-     Connection			*conn;
-     int			wait_time;
+switch_input_waiting(conn)
+Connection	*conn;
 {
   struct timeval	timeout;
   fd_set      		readfds;
@@ -262,8 +265,8 @@ poll_switch(conn, wait_time)
   FD_ZERO(&readfds);
   FD_SET(conn->sw_sock, &readfds);
   
-  timeout.tv_usec = 0;
-  timeout.tv_sec = wait_time;
+  timeout.tv_usec = SWITCH_INPUT_WAIT_USECS;
+  timeout.tv_sec = SWITCH_INPUT_WAIT_SECS;
 
   
   if (select(max_fd, &readfds, NULL, NULL, &timeout) < 0) {

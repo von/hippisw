@@ -1,6 +1,6 @@
 .\" @(#)hosts.5 1.14 90/02/15 SMI; from UCB 4.2 "
-.\" $Id: config_hippi.5,v 1.3 1995/04/13 08:44:46 vwelch Exp $ "
-.TH CONFIG_HIPPI 5  "$Date: 1995/04/13 08:44:46 $"
+.\" $Id: config_hippi.5,v 1.4 1996/07/02 18:52:03 vwelch Exp $ "
+.TH CONFIG_HIPPI 5  "$Date: 1996/07/02 18:52:03 $"
 .SH NAME
 config.hippi \- HIPPI network description file
 .SH DESCRIPTION
@@ -117,8 +117,7 @@ By default it is 0x07.
 .TP 10
 .B switch
 <switch_name> <switch_type> [size <max_port#>] [address <ip_address>]
-[port <port#>] [prompt <prompt_string>] [sms <sms version>]
-[start_log <string>]
+[port <port#>] [sms <sms version>]
 
 This line describes a HIPPI switch. All 'port' lines after it until
 the next 'switch' line are assumed to be describing ports on this
@@ -148,24 +147,11 @@ The IP address or hostname used to connect to the switch (via telnet).
 The port number used to connect to the switch. Default is the telnet port.
 
 .TP
-.B prompt
-The prompt string of the switch if different than the default switch
-prompt. 
-
-.TP
 .B sms
 This option is for NSC switches and can be used to specify the version
 of switch management software (SMS) they are running. By default version
 1 is assumed, but version 2 is also supported.
 
-.TP
-.B start_log
-The option is used to control logging of unexpected output from a switch.
-Normally any output from a switch without an attached client is considered
-unexpected, but switches (or the terminal servers they are attached to) may
-spit output whne first connected to. If this option is present for a switch
-then all output from a switch is ignored until a line starting with this
-string is seen.
 .RE
 .TP 10
 .B dport <port#> <device> <device arguments...> <options>

@@ -75,7 +75,6 @@ alloc_conn_table()
     conn->conn_fail_logged = FALSE;
     conn->sw = sw;
     conn->got_prompt = FALSE;
-    conn->prompt_char = sw->sw_prompt[strlen(sw->sw_prompt) - 1];
     conn->sw_sock = CLOSED_SOCK;
     conn->sw_in = CLOSED_FILE;
     conn->sw_out = CLOSED_FILE;
@@ -135,9 +134,6 @@ dump_connections(out_stream)
       else
 	fprintf(out_stream, "Waiting for prompt.\n");
 
-      if (conn->log_unexpected)
-	fprintf(out_stream, "\tLogging unexpect switch events.\n");
-       
       if (conn->client_state == CONNECTION_ESTABLISHED) {
 	fprintf(out_stream, "\tUser %s@%s connected since %s.\n",
 		conn->client_name, conn->client_hostname,
@@ -162,104 +158,95 @@ int
 open_switch_conn(conn)
 Connection			*conn;
 {
-	SWITCH		*sw = conn->sw;
-	int			sock;
+    SWITCH		*sw = conn->sw;
+    int			sock;
 
 
-	if (conn->switch_state != NO_CONNECTION)
-		return NO_ERROR;
-
-	sock = do_connect(sw->sw_hostname, sw->sw_tport);
-
-	if (sock < 0) {
-		/* If we haven't logged this connection failure then do so.
-		 */
-		if (conn->conn_fail_logged == FALSE) {
-			conn->conn_fail_logged = TRUE;
-
-			switch(sock) {
-
-
-			case UNKNOWN_HOST:
-
-				conn->switch_state = CONNECTION_FAILED;
-
-				log("Couldn't resolve name \"%s\" for switch \"%s\"\n",
-					sw->sw_hostname, sw->sw_name);
-
-				syslog(SYSLOG_SW_FAILED_CONN,
-					   "Couldn't resolve name \"%s\" for switch \"%s\"\n",
-					   sw->sw_hostname, sw->sw_name);
-
-				break;
-
-			case CONNECT_FAILED:
-
-
-				log("Connect to %s (%s port %d) failed.\n",
-					sw->sw_name, sw->sw_hostname, sw->sw_tport);
-
-				syslog(SYSLOG_SW_FAILED_CONN,
-					   "Couldn't connect to switch %s (%s port %d).",
-					   sw->sw_name, sw->sw_hostname, sw->sw_tport);
-
-				break;
-
-			default:
-				log("Connect to %s (%s port %d) failed for unknown reason.\n",
-					sw->sw_name, sw->sw_hostname, sw->sw_tport);	
-				
-				syslog(SYSLOG_SW_FAILED_CONN,
-					   "Couldn't connect to switch %s (%s port %d) for unknown reason.",
-					   sw->sw_name, sw->sw_hostname, sw->sw_tport);
-
-			}
-		}
-
-		return ERROR;
-	}
-  
-	conn->switch_state = CONNECTION_ESTABLISHED;
-	conn->last_status = 0;
-	conn->telnet_state = 0;
-	conn->got_prompt = FALSE;
-	conn->sent_init = FALSE;
-	conn->sw_sock = sock;
-	conn->sw_in = fdopen(sock, "r");
-	conn->sw_out = fdopen(sock, "w");
-	conn->passwd_count = 0;
-
-			/*
-			 *  If given a string to start logging on then set flag to
-			 *  false until string is encountered, otherwise start
-			 *  logging immediately.
-			 */
-	if (strlen(sw->sw_start_log) != 0)
-		conn->log_unexpected = FALSE;
-	else
-		conn->log_unexpected = TRUE;
-
-	if ((conn->sw_in == NULL) || (conn->sw_out == NULL)) {
-		log("fdopen() failed. Exiting.\n");
-		syslog(SYSLOG_DIED, "fdopen() failed (%m). Exiting.");
-		graceful_death(1);
-	}
-
-	telnet_init(sock);
-  
-	log("Connected to %s.\n", sw->sw_name);
-
-	/* If we previously logged a failure connecting to this switch
-	 * then log our success.
-	 */
-	if (conn->conn_fail_logged == TRUE) {
-		conn->conn_fail_logged = FALSE;
-		syslog(SYSLOG_SW_FAILED_CONN,
-			   "Established connection to %s.\n",
-			   sw->sw_name);
-	}
-
+    if (conn->switch_state != NO_CONNECTION)
 	return NO_ERROR;
+
+    sock = do_connect(sw->sw_hostname, sw->sw_tport);
+
+    if (sock < 0) {
+	/* If we haven't logged this connection failure then do so.
+	 */
+	if (conn->conn_fail_logged == FALSE) {
+	    conn->conn_fail_logged = TRUE;
+
+	    switch(sock) {
+
+
+	    case UNKNOWN_HOST:
+
+		conn->switch_state = CONNECTION_FAILED;
+
+		log("Couldn't resolve name \"%s\" for switch \"%s\"\n",
+		    sw->sw_hostname, sw->sw_name);
+
+		syslog(SYSLOG_SW_FAILED_CONN,
+		       "Couldn't resolve name \"%s\" for switch \"%s\"\n",
+		       sw->sw_hostname, sw->sw_name);
+
+		break;
+
+	    case CONNECT_FAILED:
+
+
+		log("Connect to %s (%s port %d) failed.\n",
+		    sw->sw_name, sw->sw_hostname, sw->sw_tport);
+
+		syslog(SYSLOG_SW_FAILED_CONN,
+		       "Couldn't connect to switch %s (%s port %d).",
+		       sw->sw_name, sw->sw_hostname, sw->sw_tport);
+
+		break;
+
+	    default:
+		log("Connect to %s (%s port %d) failed for unknown reason.\n",
+		    sw->sw_name, sw->sw_hostname, sw->sw_tport);	
+				
+		syslog(SYSLOG_SW_FAILED_CONN,
+		       "Couldn't connect to switch %s (%s port %d) for unknown reason.",
+		       sw->sw_name, sw->sw_hostname, sw->sw_tport);
+
+	    }
+	}
+
+	return ERROR;
+    }
+  
+    conn->switch_state = CONNECTION_ESTABLISHED;
+    conn->last_status = 0;
+    conn->telnet_state = 0;
+    conn->got_prompt = FALSE;
+    conn->sent_init = FALSE;
+    conn->log_unexpected = FALSE;
+    conn->sw_sock = sock;
+    conn->sw_in = fdopen(sock, "r");
+    conn->sw_out = fdopen(sock, "w");
+    conn->passwd_count = 0;
+
+    if ((conn->sw_in == NULL) || (conn->sw_out == NULL)) {
+	log("fdopen() failed. Exiting.\n");
+	syslog(SYSLOG_DIED, "fdopen() failed (%m). Exiting.");
+	graceful_death(1);
+    }
+
+    telnet_init(sock);
+  
+    log("Connected to %s.\n", sw->sw_name);
+
+    /* If we previously logged a failure connecting to this switch
+     * then log our success.
+     */
+    if (conn->conn_fail_logged == TRUE) {
+	conn->conn_fail_logged = FALSE;
+	syslog(SYSLOG_SW_FAILED_CONN,
+	       "Established connection to %s.\n",
+	       sw->sw_name);
+    }
+
+    return NO_ERROR;
 }
 	
 

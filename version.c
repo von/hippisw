@@ -2,12 +2,13 @@
  *	version.c
  */
 
-static char *version = "0.2.3";
-static char *date = "$Date: 1996/03/05 20:32:43 $";
+#include "basic_defines.h"
+
+static char *date = "$Date: 1996/07/02 18:52:18 $";
 
 
 int
 print_version_info()
 {
-  printf("hippisw release %s dated %s.\n", version, date);
+  printf("hippisw release %s dated %s.\n", HIPPISW_VERSION, date);
 }

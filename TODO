@@ -13,7 +13,8 @@
 	terminal server a chance to clear the port.
  o	Update Makefile to use install.
  o	harp convex output: remove old route before adding new
- o	hippisw: Allow SIGINT to break out always
+ o	hippisw: Allow SIGINT to break out always (done?)
+ o	Replace log unexpected start string with prompt
 
 
 		Current bug list

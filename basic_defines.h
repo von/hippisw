@@ -8,6 +8,10 @@
 #ifndef _BASIC_DEFINES_H
 #define _BASIC_DEFINES_H
 
+/*
+ * Our version
+ */
+#define HIPPISW_VERSION		"0.2.3"
 
 /*
  *	Architecture-specific configuration
@@ -70,7 +74,8 @@ typedef	int		Boolean;
 #define COMMENTLEN	40			/* Length of comment */
 #define PATHLEN		120			/* Length of dir pathes */
 #define PIDLEN		8			/* Length of PID */
-#define STARTLOGLEN	40			/* Length of start log string */
+#define VERSIONLEN	10			/* Length of version string */
+
 
 /*
  *	Convert a string to an integer.

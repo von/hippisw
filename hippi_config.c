@@ -3,7 +3,7 @@
  *
  *	Read and dump the hippisw config file.
  *
- *	$Id: hippi_config.c,v 1.3 1995/07/22 20:08:03 vwelch Exp $
+ *	$Id: hippi_config.c,v 1.4 1996/07/02 18:52:09 vwelch Exp $
  */
 #include <stdio.h>
 
@@ -180,10 +180,18 @@ FILE *file;
       fprintf(file, "   Address: %s", sw->sw_hostname);
       if (sw->sw_tport)
 	fprintf(file, " (Port: %d)", sw->sw_tport);
-      if (*sw->sw_prompt)
-	fprintf(file, "  Prompt: \"%s\"", 
-		sw->sw_prompt);
       fprintf(file, "\n");
+      if (sw->sw_prompts) {
+	  char **prompt = sw->sw_prompts;
+
+	  fprintf(file, "Prompts: ");
+
+	  while (*prompt != NULL) {
+	      fprintf(file, "\"%s\" ", *prompt);
+	      prompt++;
+	  }
+	  fprintf(file, "\n");
+      }
     }
     fprintf(file, "   %s, %s, %d bits, version %d\n",
 	    (sw->sw_is_smart ? "SMART" : "DUMB"),
@@ -191,8 +199,6 @@ FILE *file;
 	    sw->sw_bits_shifted, sw->sw_version);
     if (strlen(sw->sw_comment) > 0)
       fprintf(file, "   comment: %s\n", sw->sw_comment);
-    if (strlen(sw->sw_start_log) > 0)
-      fprintf(file, "   start log string: %s\n", sw->sw_start_log);
 
     FOR_EACH_PORT(sw->sw_ports, sp, spnum) {
       fprintf(file, "\t%s %-2d %s\t%-20s",
