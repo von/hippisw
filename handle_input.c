@@ -22,7 +22,8 @@
 static int read_from_switch	        PROTO((Connection *conn,
 				        char *buffer,
 				        int len));
-static Boolean poll_switch		PROTO((Connection *conn));
+static Boolean poll_switch		PROTO((Connection *conn,
+					       int timeout));
 static void send_sw_password		PROTO((Connection *conn));
 
 
@@ -167,13 +168,13 @@ read_from_switch(conn, buffer, len)
 
 
   NULL_STRING(buffer);
-
+  
   /*
-   *	If last read attempt returned an empty buffer, then poll
-   *	for data first.
+   *  If last read attempt returned an empty buffer, then poll
+   *  for data first.
    */
   if (conn->last_status == TELNET_EOB)
-    if (poll_switch(conn) == FALSE)
+    if (poll_switch(conn, 0) == FALSE)
       return 0;
 
   while(!done) {
@@ -184,7 +185,7 @@ read_from_switch(conn, buffer, len)
     switch(byte) {
       
     case 0:
-      continue;		/* Ignore nulls	*/
+      continue;			/* Ignore nulls	*/
 
     case TELNET_EOF:
       close_switch_conn(conn);
@@ -202,7 +203,7 @@ read_from_switch(conn, buffer, len)
       return ERROR;
 
     case TELNET_EOB:
-      if (poll_switch(conn) == FALSE)
+      if (poll_switch(conn, SELECT_TIMEOUT) == FALSE)
 	done = TRUE;
       break;
 
@@ -236,8 +237,9 @@ read_from_switch(conn, buffer, len)
  *	Returns TRUE if data is waiting, FALSE otherwise.
  */
 static Boolean
-poll_switch(conn)
+poll_switch(conn, wait_time)
      Connection			*conn;
+     int			wait_time;
 {
   struct timeval	timeout;
   fd_set      		readfds;
@@ -250,13 +252,9 @@ poll_switch(conn)
   FD_ZERO(&readfds);
   FD_SET(conn->sw_sock, &readfds);
   
-  if (conn->got_prompt == TRUE) {
-    timeout.tv_usec = timeout.tv_sec = 0;
+  timeout.tv_usec = 0;
+  timeout.tv_sec = wait_time;
 
-  } else {
-    timeout.tv_usec = 0;
-    timeout.tv_sec = SELECT_TIMEOUT;
-  }
   
   if (select(max_fd, &readfds, NULL, NULL, &timeout) < 0) {
     log("select() error %d\n", errno);
