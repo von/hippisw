@@ -3,6 +3,9 @@
 		TODO list
 
 
+ o	Add means to add prompts.
+ o	Update INSTALLATION and notes about prompts.
+ o	Check BUG list.
  o	Add support to harp for HP, and others.
  o	Add hosts/nets to be gatewayed by a dxe (?)
  o	Combine log and syslog stuff.
@@ -19,8 +22,5 @@
 	the terminal server disconnects after three bad passwords results
 	in maximum password send count never being reached.
 	FIX: check for "Password OK" string.
- o	If daemon loses connection to a switch it doesn't realise it until
-	a user connects to the switch. This need to be handled more
-	gracefully (don't drop user connect).
  o	Ifield '-l' flag not working right.
 

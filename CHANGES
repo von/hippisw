@@ -3,6 +3,11 @@
 		CHANGES
 
 From 0.2.3 to 0.2.4:
+	BUG FIX: Count of number of times password is sent to switch
+		is clear now only when a prompt is seen from the switch.
+		This prevents us from falling into an infinite loop if
+		the switch drops the connection after a number of bad
+		passwords smaller than our limit.
 	UPDATED: harp gigarouter output
 	BUG FIX: Close server socket on restart preventing "address
 		already in use" errors.

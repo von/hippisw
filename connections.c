@@ -74,6 +74,7 @@ alloc_conn_table()
       conn->switch_state = NO_CONNECTION;
     conn->conn_fail_logged = FALSE;
     conn->sw = sw;
+    conn->passwd_count = 0;
     conn->got_prompt = FALSE;
     conn->sw_sock = CLOSED_SOCK;
     conn->sw_in = CLOSED_FILE;
@@ -224,7 +225,6 @@ Connection			*conn;
     conn->sw_sock = sock;
     conn->sw_in = fdopen(sock, "r");
     conn->sw_out = fdopen(sock, "w");
-    conn->passwd_count = 0;
 
     if ((conn->sw_in == NULL) || (conn->sw_out == NULL)) {
 	log("fdopen() failed. Exiting.\n");

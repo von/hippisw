@@ -50,7 +50,7 @@ static void send_sw_password		PROTO((Connection *conn));
  */
 void
 handle_switch_input(conn)
-Connection			*conn;
+	Connection			*conn;
 {
     char				buffer[BUFFERLEN];
     int				bytes_read;
@@ -59,83 +59,92 @@ Connection			*conn;
 
     while (!done) {
 
-	bytes_read = read_from_switch(conn, buffer, BUFFERLEN);
+		bytes_read = read_from_switch(conn, buffer, BUFFERLEN);
 
-	if ((bytes_read == ERROR) || (bytes_read == 0)) {
-	    done = TRUE;
-	    continue;
-	}
+		if ((bytes_read == ERROR) || (bytes_read == 0)) {
+			done = TRUE;
+			continue;
+		}
 
-	if (conn->client_sock == CLOSED_SOCK) {
-	    /*
-	     * No one is connected to this switch currently.
-	     */
+		if (conn->client_sock == CLOSED_SOCK) {
+			/*
+			 * No one is connected to this switch currently.
+			 */
 
-	    log_message(conn->sw->sw_name, buffer);
+			log_message(conn->sw->sw_name, buffer);
 
-	    /*
-	     * Ignore NULL or carriage-return only strings.
-	     */
-	    if (strlen(buffer) < 2)
-		continue;
+			/*
+			 * Ignore NULL or carriage-return only strings.
+			 */
+			if (strlen(buffer) < 2)
+				continue;
       
-	    /*
-	     * Log this output if it's unexpected.
-	     */
-	    if (conn->log_unexpected) {
-		if (to_logcmd == NULL)	  	    
-		    to_logcmd = open_log_cmd(conn->sw->sw_name);
+			/*
+			 * Log this output if it's unexpected.
+			 */
+			if (conn->log_unexpected) {
+				if (to_logcmd == NULL)	  	    
+					to_logcmd = open_log_cmd(conn->sw->sw_name);
 	
-		if (to_logcmd != NULL)
-		    fprintf(to_logcmd, buffer);
-	    }
-	}
+				if (to_logcmd != NULL)
+					fprintf(to_logcmd, buffer);
+			}
+		}
     
-	/*
-	 *	Check for password prompt
-	 */
-	if (is_password_prompt(buffer)) {
-	    send_sw_password(conn);
-	    done = TRUE;
-	    continue;
-	}
+		/*
+		 *	Check for password prompt
+		 */
+		if (is_password_prompt(buffer)) {
+			send_sw_password(conn);
+			done = TRUE;
+			continue;
+		}
 
-	/*
-	 *	Check for a prompt from the switch
-	 */
-	if (is_prompt(conn->sw, buffer)) {
-	    /*
-	     * If we have not already sent the init string then do so
-	     * now, otherwise we wait for user input.
-	     */
-	    if (conn->sent_init) {
-		conn->got_prompt = TRUE;
-		conn->log_unexpected = TRUE;
-		done = TRUE;
+		/*
+		 *	Check for a prompt from the switch
+		 */
+		if (is_prompt(conn->sw, buffer)) {
+			/*
+			 * If this is the first time we seen a prompt this connection
+			 * then handle it differently. Basically we send an init
+			 * string to the switch to set any parameters we want and we
+			 * reset the password count.
+			 */
+			if (conn->sent_init) {
+				/*
+				 * Seen prompt before.
+				 */
+				conn->got_prompt = TRUE;
+				conn->log_unexpected = TRUE;
+				done = TRUE;
 
-	    } else {
-		sw_init(conn);
-		conn->sent_init = TRUE;
-	    }
-	}
+			} else {   
+				/*
+				 * First prompt seen.
+				 */
+				sw_init(conn);
+				conn->sent_init = TRUE;
+				conn->passwd_count = 0;
+			}
+		}
 
-	/*
-	 *	Send string to client if connected
-	 */
-	if (conn->client_sock != CLOSED_SOCK) {
-	    write_to_client(conn, buffer, bytes_read);
+		/*
+		 *	Send string to client if connected
+		 */
+		if (conn->client_sock != CLOSED_SOCK) {
+			write_to_client(conn, buffer, bytes_read);
 
-	    /*
-	     * Log it, unless client has asked otherwise.
-	     */
-	    if (!(conn->flags & HIPPISWD_FLG_NOLOG))
-		log_message(conn->sw->sw_name, buffer);
-
-	} 
+			/*
+			 * Log it, unless client has asked otherwise.
+			 */
+			if (!(conn->flags & HIPPISWD_FLG_NOLOG))
+				log_message(conn->sw->sw_name, buffer);
+		
+		} 	
     }
 
     if (to_logcmd)
-	close_log_cmd(to_logcmd);
+		close_log_cmd(to_logcmd);
 }
 
 
