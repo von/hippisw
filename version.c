@@ -2,8 +2,8 @@
  *	version.c
  */
 
-static char *version = "Beta 0.2";
-static char *date = "$Date: 1995/03/27 16:51:11 $";
+static char *version = "Beta 0.2.1";
+static char *date = "$Date: 1995/04/06 22:23:58 $";
 
 
 int

@@ -2,6 +2,9 @@
 
 		CHANGES
 
+From 0.2 Beta to 0.2.1 Beta:
+	BUG FIX: Disabling of ports was broken.
+
 From 0.1 Beta to 0.2 Beta:
 
 	BUG FIX: hippiswd was calling abort() on segment violation

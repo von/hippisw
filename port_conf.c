@@ -487,7 +487,7 @@ scan_device(port)
 /*
  *	Handle general port options.
  *
- *	Returns TRUE if the option was parse, FALSE if it was not.
+ *	Returns TRUE if the option was parsed, FALSE if it was not.
  */
 static Boolean
 handle_port_options(port, option)

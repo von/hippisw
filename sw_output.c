@@ -212,6 +212,7 @@ disable_all_ports()
   case HIPPISW_PS4:
   case HIPPISW_PS32:
     
+    
     FOR_EACH_PORT(output_sw->sw_ports, port, portnum) {
 
       if (port->swp_need_disabled == FALSE)
@@ -226,13 +227,13 @@ disable_all_ports()
 	sprintf(command_str, "fset dpi\\n%d\n", port->swp_num);
 	break;
       }
-      break;
     }	
+    break;
 
-    default:
-      /** Not necessary **/
-      NULL_STRING(command_str);
-      break;
+  default:
+    /** Not necessary **/
+    NULL_STRING(command_str);
+    break;
   }
 
   PRINT_CMD();

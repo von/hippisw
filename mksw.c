@@ -4,7 +4,7 @@
  *	The commands are written to standard output.
  *
  *
- *	$Id: mksw.c,v 1.2 1995/03/30 20:53:27 vwelch Exp $
+ *	$Id: mksw.c,v 1.3 1995/04/06 22:23:51 vwelch Exp $
  * 
  */
 
@@ -162,7 +162,10 @@ static void doswitch(mysw)
 	     switch_types[mysw->sw_type]);
   sw_comment("\n");
   
+  sw_comment(" Disable Ports (if needed)\n");
   disable_all_ports();
+  sw_comment("\n");
+
   sw_comment(" Remove all old mappings\n");
   clear_all_pathways();
 	
