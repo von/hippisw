@@ -1,0 +1,30 @@
+# Configuration file for HIPPI network
+#
+
+hippiswd \
+	dir		/tmp/hippisw \
+	host		computer \
+	port		2040 \
+	passwdfile	passwd
+
+address	\	
+	network		10.11.12.0
+
+switch toggle PS32	\
+	address	ts2	port 2003
+port  2	host odin-hippi	needdisabled
+port  3	link cs		needdisabled
+port  4	host mss-hippi 	needdisabled
+port  5	link dip	needdisabled
+
+switch cs es1		\
+	address ts2	port 666
+port  2	link toggle
+port  3	device hxa
+
+switch dip ps32		\
+	address bits	port 2033
+port  2	device psitech	\
+	addr 0xafb
+port  3	link toggle
+port 20	host monet-hippi
