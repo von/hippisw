@@ -63,6 +63,7 @@ main(argc, argv)
 	Boolean		loopback = FALSE;
 	Boolean		print_path = FALSE;
 	int			mode = MODE_SRC_ROUTE;
+	int			first_hop;
 
 
 	while ((arg = getopt(argc, argv, "c:lpvDL")) != EOF)
@@ -114,6 +115,8 @@ main(argc, argv)
 	case MODE_SRC_ROUTE:
 		/*	Handle source route
 		 */
+		first_hop = optind;
+
 		while ((argc - optind) > 1) {
 			switch (find_route(argv[optind], argv[optind + 1], &hop)) {
 			case NO_ERROR:
@@ -140,7 +143,7 @@ main(argc, argv)
 		}
     
 		if (loopback) {
-			while (optind > argc ) {
+			while (optind > first_hop ) {
 				switch (find_route(argv[optind], argv[optind - 1], &hop)) {
 				case NO_ERROR:
 					path = append_portlist(path, hop);

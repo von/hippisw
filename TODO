@@ -3,9 +3,8 @@
 		TODO list
 
 
- o	Add means to add prompts.
- o	Update INSTALLATION and notes about prompts.
- o	Check BUG list.
+ o	Add means to add additional switch prompts.
+ o	Revamp security.
  o	Add support to harp for HP, and others.
  o	Add hosts/nets to be gatewayed by a dxe (?)
  o	Combine log and syslog stuff.
@@ -18,9 +17,6 @@
 
 		Current bug list
 
- o	Clearing password send count on connect combined with fact that
-	the terminal server disconnects after three bad passwords results
-	in maximum password send count never being reached.
-	FIX: check for "Password OK" string.
- o	Ifield '-l' flag not working right.
+ o	None? (not likely)
+
 

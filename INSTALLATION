@@ -8,6 +8,26 @@ It should compile and work on about any Unix platform. If you run into
 any problems or do any ports please let me know.
 
 
+SPECIAL NOTE for version 0.2.4 and later:
+
+	hippiswd now relies on a hard-coded list of switch prompts in order
+	to detect when the switch is done outputing and is waiting for
+	input. This list is at the begining of switch.c. I only have access
+	to a PS32 and an Essential ES-1 so for other switches the list
+	may not be accurate. If the connection hangs at a point where
+	the switch is waiting for input this is probably becuase I don't
+	have the prompt string included. Please help me by reporting
+	this to me.
+
+	Also note that because the expected prompt strings are hard-coded
+	changing the switch prompt from the default will hose things up.
+	I'll add the ability to include new prompt strings in hippi.config
+	at some point.
+
+
+
+Installation Instructions:
+
 1) Edit hippisw_config to fit your needs:
 
  1a) Set cc to your compiler. Right now the build has really only been
@@ -29,7 +49,7 @@ any problems or do any ports please let me know.
 	editing read_config.c.)
 
  1e) Set the installation locations of the binaries and man pages. bin_dir
-	and MAN_DIR control the installation locations used by 'make install'.
+	and man_dir control the installation locations used by 'make install'.
 
  1f) Normally the hippiswd daemon only requires a password for operations
 	that directly effect it (restarting and killing). If you want it
@@ -110,5 +130,5 @@ any problems or do any ports please let me know.
 	detail in hippi_utils(8).
 
 Von Welch (vwelch@ncsa.uiuc.edu)
-$Id: INSTALLATION,v 1.6 1995/05/16 18:41:58 vwelch Exp $
+$Id: INSTALLATION,v 1.7 1996/08/21 14:29:36 vwelch Exp $
 
