@@ -342,6 +342,8 @@ background()
     close(tty_fd);
   }
   
+  setsid();
+
   return;
 }
 
@@ -349,6 +351,10 @@ background()
 /*
  *	Register all of our signals.
  */
+#ifndef HIGH_SIG
+# define HIGH_SIG		NSIG
+#endif
+
 static void
 register_signals()
 {
@@ -375,7 +381,7 @@ register_signals()
 #endif
 
 
-  for (signum = 1; signum < NSIG; signum++) {
+  for (signum = 1; signum < HIGH_SIG; signum++) {
     switch (signum) {
     case SIGKILL:		/* Can't register       */
     case SIGSTOP:		/* Can't register       */
