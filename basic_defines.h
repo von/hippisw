@@ -11,7 +11,7 @@
 /*
  * Our version
  */
-#define HIPPISW_VERSION		"0.2.3"
+#define HIPPISW_VERSION		"0.2.4"
 
 /*
  *	Architecture-specific configuration

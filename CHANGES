@@ -2,7 +2,7 @@
 
 		CHANGES
 
-In Working Copy:
+From 0.2.3 to 0.2.4:
 	UPDATED: harp gigarouter output
 	BUG FIX: Close server socket on restart preventing "address
 		already in use" errors.
