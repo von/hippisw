@@ -599,6 +599,12 @@ login_to_daemon(request, daemon_host, daemon_port)
     sock = NO_ERROR;
     break;
     
+  case HIPPISWD_RSP_BAD_VER:
+	  printf("Version mismatch between client and daemon.\n");
+	  close(sock);
+	  sock = LOGIN_BAD_CONNECT;
+	  break;
+	  
   default:
     printf("Unknown response '%c' from daemon.\n",
 	   response->code);
