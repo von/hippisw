@@ -32,6 +32,7 @@ typedef struct	{
   Boolean		got_prompt;		/* Gotten prompt?	*/
   char			prompt_char;		/* Last char of prompt	*/
   Boolean		log_unexpected;		/* Log unexpected output? */
+  Boolean		sent_init;		/* Have we inited switch? */
   int			sw_sock;		/* Socket to switch	*/
   FILE			*sw_in;			/* Stream from switch	*/
   FILE			*sw_out;		/* Stream to switch	*/

@@ -203,6 +203,7 @@ open_switch_conn(conn)
   conn->last_status = 0;
   conn->telnet_state = 0;
   conn->got_prompt = FALSE;
+  conn->sent_init = FALSE;
   conn->sw_sock = sock;
   conn->sw_in = fdopen(sock, "r");
   conn->sw_out = fdopen(sock, "w");

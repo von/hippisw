@@ -2,7 +2,7 @@
 #
 #	Makefile for hippisw
 #
-#	$Id: Makefile,v 1.7 1995/07/22 20:22:02 vwelch Exp $
+#	$Id: Makefile,v 1.8 1995/08/16 00:46:25 vwelch Exp $
 #
 ###########################################################################
 
@@ -38,14 +38,16 @@ INCS	=	address_config.h address_map.h basic_defines.h \
 		handle_input.h handle_output.h ifield.h ip_addr.h logger.h \
 		logical_addr.h parse_file.h parse_token.h password_config.h \
 		path.h port.h portlist.h prompt.h read_config.h sw_output.h \
-		switch.h switch_map.h switchlist.h telnet.h time_string.h
+		sw_init.h switch.h switch_map.h switchlist.h telnet.h \
+		time_string.h
 
 # Binary sources
 BSRCS	=	harp.c hippi_cmd.c hippi_config.c ifield.c mksw.c 
 
 DAEMON_SRCS =	hippiswd.c \
 		connections.c client_request.c handle_input.c handle_output.c \
-		logger.c password_config.c prompt.c telnet.c time_string.c
+		logger.c password_config.c prompt.c sw_init.c telnet.c \
+		time_string.c
 
 CLIENT_SRCS =	hippisw.c
 

@@ -114,8 +114,17 @@ handle_switch_input(conn)
     }
 
     if (is_prompt(conn, buffer)) {
-      conn->got_prompt = TRUE;
-      done = TRUE;
+      /* If we have not already sent the init string then do so now, otherwise
+       * we wait for user input.
+       */
+      if (conn->sent_init) {
+        conn->got_prompt = TRUE;
+        done = TRUE;
+
+      } else {
+	sw_init(conn);
+	conn->sent_init = TRUE;
+      }
     }
   }
 
