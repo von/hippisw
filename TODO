@@ -12,8 +12,15 @@
 		connection, dying and killed.
  o	Add logging on daemon for address from accept call.
  o	Add setting of page size for ES-1.
+ o	After disconnection, wait a little before reconnecting to give
+	terminal server a chance to clear the port.
+ o	Update Makefile to use install.
+
 
 		Current bug list
 
- o	None
+ o	Clearing password send count on connect combined with fact that
+	the terminal server disconnects after three bad passwords results
+	in maximum password send count never being reached.
+	FIX: check for "Password OK" string.
 
