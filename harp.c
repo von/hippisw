@@ -4,7 +4,7 @@
  *
  *	The map file is written to standard output.
  *
- *	$Id: harp.c,v 1.2 1995/03/27 16:50:44 vwelch Exp $
+ *	$Id: harp.c,v 1.3 1995/03/30 20:53:13 vwelch Exp $
  */
 #include <stdio.h>
 #include "basic_defines.h"
@@ -97,19 +97,19 @@ char **argv;
   int			errflg = 0;
 
 
-  while ( (c = getopt(argc, argv, "c:Civ")) != EOF)
+  while ( (c = getopt(argc, argv, "c:itv")) != EOF)
     switch(c) {
 
     case 'c':
       cfn = optarg;
       break;
 
-    case 'C':
-      print_comments = FALSE;
-      break;
-
     case 'i':
       use_dot_address = TRUE;
+      break;
+
+    case 't':
+      print_comments = FALSE;
       break;
 
     case 'v':

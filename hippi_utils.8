@@ -1,5 +1,5 @@
-.\" $Id: hippi_utils.8,v 1.2 1995/03/27 16:50:49 vwelch Exp $ "
-.TH HIPPI_UTILS 8 "$Date: 1995/03/27 16:50:49 $"
+.\" $Id: hippi_utils.8,v 1.3 1995/03/30 20:53:19 vwelch Exp $ "
+.TH HIPPI_UTILS 8 "$Date: 1995/03/30 20:53:19 $"
 .SH NAME
 hippi_cmd, hippi_config, ifield, mksw \- hippisw utilities
 .SH SYNOPSIS
@@ -8,14 +8,12 @@ hippi_cmd, hippi_config, ifield, mksw \- hippisw utilities
 .LP
 .B hippi_config [-c config_file] -[ails] [-v]
 .LP
-.B ifield [-c config_file] [-p] [-l] source
-.B target [target2] ...
-.LP
-.B ifield [-c config_file] destination
+.B ifield [-c config_file] [-L|-D] [-p] [-l]
+.B <args>
 .LP
 .B mksw [-c config_file] [-t] [-v] [switch_name]
 .LP
-.B harp [-c config_file] [-C] [-i] [-v] [<architecture>|hosts] [<host>]
+.B harp [-c config_file] [-i] [-t] [-v] [<architecture>|hosts] [<host>]
 .LP
 .SH DESCRIPTION
 
@@ -69,6 +67,11 @@ logical address for the host or device specified by the argument.
 will return the physical location of the host or device specified by
 the argument. The output will be in the format "<switch> <port number>\n".
 
+ If the -D flag is specified, two arguments are expected, the first
+being a switch name and the second being a port number. ifield will
+return the name of the device located at the location or "Unknown"
+if the port configuration is not present in the configuration file.
+
 
 .B mksw
 is a program which reads the HIPPI network configuration file and
@@ -105,7 +108,7 @@ hostname of the host the harp file is intended for is required to create
 the file (the device numbers).
 
 The -i option causes the output file to contain only IP addresses and not
-hostnames. The -C option specifies terse mode and suppresses all comments
+hostnames. The -t option specifies terse mode and suppresses all comments
 in the output.
 
 Currently supported hosts are: sgi (SGI native HIPPI for Challenge and

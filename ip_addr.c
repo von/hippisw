@@ -93,7 +93,7 @@ hostname_to_netaddr(name)
 }
 
 /*
- *	Convert a hostname to a full hostname.
+ *	Convert a hostname to a full hostname if possible.
  *
  *	Returns a pointer to a static buffer.
  */
@@ -104,10 +104,11 @@ hostname_to_fullname(name)
   static char		fullname[HNAMELEN];
   struct hostent	*hinfo;
 
-  if ((hinfo = gethostbyname(name)) == NULL)
-    return NULL;
+  if ((hinfo = gethostbyname(name)) != NULL)
+    strncpy(fullname, hinfo->h_name, HNAMELEN);
 
-  strncpy(fullname, hinfo->h_name, HNAMELEN);
+  else
+    strncpy(fullname, name, HNAMELEN);
 
   return fullname;
 }

@@ -4,7 +4,7 @@
  *	The commands are written to standard output.
  *
  *
- *	$Id: mksw.c,v 1.1 1995/02/28 23:17:17 vwelch Exp $
+ *	$Id: mksw.c,v 1.2 1995/03/30 20:53:27 vwelch Exp $
  * 
  */
 
@@ -46,7 +46,7 @@ main(argc, argv)
   /*
    * Crack the command options
    */
-  while ( ( c = getopt ( argc, argv, "c:Cv" ) ) != EOF)  {
+  while ( ( c = getopt ( argc, argv, "c:tv" ) ) != EOF)  {
     switch ( c )	{
 
     case 'c':			/* string parameter		*/
@@ -84,7 +84,7 @@ main(argc, argv)
    */
   set_switch_output_stream(out_file);
   
-  if(swname)	{		/*  IF -s PARAMETER GIVEN */
+  if(swname)	{ 		/* Switch specified */
     /*
      * Find the indicated switch in the table.
      */
@@ -133,8 +133,8 @@ static void doswitch(mysw)
   PATH		*to_dest;	/* Either to switch or local_port	*/
   SWITCH	*sw;
   
-  SWITCH	*tester_sw;
-  PORT		*tester_port;
+  SWITCH	*tester_sw = NULL;
+  PORT		*tester_port = NULL;
   
   LOGICAL_MAP	*map;
 
@@ -146,7 +146,8 @@ static void doswitch(mysw)
   local_port = malloc_path();
   
   tester_port = addr_config.tester_port;
-  tester_sw = tester_port->swp_switch;
+  if (tester_port)
+    tester_sw = tester_port->swp_switch;
   
   
   sw_comment("==================================\n");

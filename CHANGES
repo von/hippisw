@@ -22,7 +22,7 @@ From 0.1 Beta to 0.2 Beta:
 	CLEAN UP: hippisw usage output format cleaned up.
 	ADDED: -f option to hippiswd to force it to ignore any current
 		hippisw.pid file.
-	ADDED: Daemon now checked to see if the host it's running on is
+	ADDED: Daemon now checks to see if the host it's running on is
 		the one specified in the configuration file and prints
 		a warning to the log if it's not.
 	ADDED: hippisw client will now automatically rerequest password
@@ -35,5 +35,9 @@ From 0.1 Beta to 0.2 Beta:
 		talk to it.
 	BUG FIX: harp -c and -C arguments were broken.
 	ADDED: Support for Cray Server 6400 to harp.
-
-
+	BUG FIX: mksw would segment fault if tester was not present.
+	BUG FIX: mksw -t option was broken.
+	CHANGE: harp now uses -t option instead of -C for terse mode
+		in order to standardize with mksw.
+	BUG FIX: harp and other utilities would print NULL for a
+		temporary hippi-xx address.

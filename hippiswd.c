@@ -213,7 +213,7 @@ main(argc, argv)
     fd_set		readfds, exceptfds;
     Connection		*conn;
     int			conn_num;
-    int			client_sock = CLOSED_SOCK;
+    static int		client_sock = CLOSED_SOCK;
 
 
     /*

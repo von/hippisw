@@ -9,6 +9,8 @@
  o	Combine log and syslog stuff.
  o	Check syslog() stuff: failed connection, bad password, message on
 		connection, dying and killed.
+ o	Add logging on daemon for address from accept call.
+
 
 		Current bug list
 
