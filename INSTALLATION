@@ -2,87 +2,96 @@
 
 		HIPPISW Installation Instructions
 
-Platforms tested on:
-	SUN IPC running SunOS 4.1.2
-	SGI Indy running IRIX 5.2
-	SUN Sparc 5 running SunOS 5.4
+Tested under:	SunOS 4.1.2, SunOS 5.4 (with gcc), IRIX 5.2
 
 It should compile and work on about any Unix platform. If you run into
 any problems or do any ports please let me know.
 
 
-1) Edit Makefile to fit your needs:
+1) Edit hippisw_config to fit your needs:
 
- 1a) Set MAGIC_STRING if so desired. MAGIC_STRING defines a string passed from
+ 1a) Set cc to your compiler. Right now the build has really only been
+	tested with gcc so if you have to use something else you could
+	easily run into problems. If you run into problems with prototypes
+	put -DNOPROTOTYPES in cflags.
+
+ 1b) Set build_dirs to the directory you want the object files built under.
+ 
+ 1c) Set magic_string if so desired. magic_string defines a string passed from
 	client to the daemon. If the daemon doesn't see the expected string
 	from the client it will return a bad magic error. This can be used
 	for a rudimentary security. You may also leave it as it is.
 
- 1b) Set default location of configuration file if so desired. By default
+ 1d) Set default location of configuration file if so desired. By default
 	HIPPISW programs will look for the configuration file in
-	the local specified by CONFIG_FILE. (Note: if desired additional
+	the local specified by config_file. (Note: if desired additional
 	locations to check for the configuration file may be added by
 	editing read_config.c.)
 
- 1c) Set the installation locations of the binaries and man pages. BIN_DIR
+ 1e) Set the installation locations of the binaries and man pages. bin_dir
 	and MAN_DIR control the installation locations used by 'make install'.
 
- 1d) Normally the hippiswd daemon only requires a password for operations
+ 1f) Normally the hippiswd daemon only requires a password for operations
 	that directly effect it (restarting and killing). If you want it
-	to require a password for any connection, then uncomment the line
-	defining HIPPISWD_REQUIRE_PASSWD.
+	to require a password for any connection, then change
+	require_password to "always".
 
- 1e) If you don't have gcc then change the definition of CC to gcc. You
-	will probably also have to uncomment the line defining NO_PROTOTYPES.
+ 1g) Set the facility hippiswd uses for logging by setting the syslog
+	variable.
 
- 1f) Normally the hippiswd daemon used the LOG_DAEMON facility to log things
-	to syslog(). This can be changed by defining SYSLOG_FACILITY.
+ 1h) Define any other compile or link flags needed with cflags and ldflags
+	respectivly.
 
-2) Run 'make'. It will create a architecture specific directory and build
-	all the object files and binaries in it.
+2) Run 'configure'. It will create an architecture-specific directory with
+	the architecture-specific include files, make.hippisw.inc and
+	hippisw.h. You need to run configure every time you build on
+	a different architecture/OS or change hippisw_conf.
 
-3) Run 'make install'. This will copy all the binaries and man pages to their
+3) Run 'make'. It will build the binaries in the appropriate architecture
+	directory.
+
+4) Run 'make install'. This will copy all the binaries and man pages to their
 	final destination.
 
- 3a) 'make clean' will remove everything but the binaries from the architecture
+ 4a) 'make clean' will remove everything but the binaries from the architecture
 	directory. 'make clobber' will completely remove the architecture
 	directory.
 
-4) Edit config.hippi to reflect the hippi network at your site. See
+5) Edit config.hippi to reflect the hippi network at your site. See
 	hippi_config(5) for a description of what this file should look
 	like. EXAMPLES_CONFIGS/hippi.config is also included as an example.
 	This file then needs to be placed in the location specified by
 	the CONFIG_FILE variable in the Makefile.
 
-5) Create a working directory for the hippiswd daemon (if needed). This
+6) Create a working directory for the hippiswd daemon (if needed). This
 	is the directory hippiswd writes various files in and looks for
 	it's password file. This is the directory specified in config.hippi
 	under the 'dir' option on the hippiswd line.
 
-6) Edit config.hippi.password to contain any passwords the hippiswd daemon
+7) Edit config.hippi.password to contain any passwords the hippiswd daemon
 	will need to talk to your switches as well as the password the client
 	needs to talk to it. See config_hippi_password(5) for a description.
 	See EXAMPLES_CONFIGS/config.hippi.password for an example. This file
 	then needs to be put in the hippiswd working directory. The
 	permissions should be set strict as possible on this file.
 
-7) Run 'hippi_config'. This should come back with a parsed form the the
+8) Run 'hippi_config'. This should come back with a parsed form the the
 	config.hippi file. Look for any warnings or errors at the beginning
 	of the output. Any errors need to be corrected before any further
 	programs can be run.
 
-8) Run 'hippiswd'. It should background itself and connect to all the switches
+9) Run 'hippiswd'. It should background itself and connect to all the switches
 	described in config.hippi. Check the log file (hippiswd.log in it's
 	working directory) to see if it's having any problems.
 
-9) Run 'hippisw'. If you only have one switch in config.hippi you should
+10) Run 'hippisw'. If you only have one switch in config.hippi you should
 	now find yourself connected to that switch. If you have multiple
 	switches you will be instructed to specify a switch with 'switch
 	<switchname>' (you can also specify the switch as an argument on
 	the command line). You can also use the switch command to change
 	between switches. Use 'quit' or ^D to exit.
 
-10) Try out the 'mksw' utility. Run 'mksw' and look at it's output (you
+11) Try out the 'mksw' utility. Run 'mksw' and look at it's output (you
 	probably want to pipe it into a pager as it's liable to be long).
 	You should see a number of commands for your switches that configure
 	logical addresses as specified by the config.hippi file. You will
@@ -94,11 +103,12 @@ any problems or do any ports please let me know.
 	current configuration so don't do this until you are certain
 	you are happy with mksw's output.
 
-11) Try out the other utilities. They are harp, which generates hippi arp
+12) Try out the other utilities. They are harp, which generates hippi arp
 	tables for various hosts, ifield, which returns logical addresses
 	and sources routes, and hippi_cmd, which generates switch commands
 	for clearing and displaying statistics. They are described in 
 	detail in hippi_utils(8).
 
 Von Welch (vwelch@ncsa.uiuc.edu)
-$Id: INSTALLATION,v 1.5 1995/05/06 22:33:57 vwelch Exp $
+$Id: INSTALLATION,v 1.6 1995/05/16 18:41:58 vwelch Exp $
+

@@ -1,0 +1,59 @@
+#
+#	HIPPISW configuration file
+#
+#	$Id: hippisw_config,v 1.1 1995/05/16 18:42:13 vwelch Exp $
+#
+
+#
+#	What compiler
+#
+cc=gcc
+
+#
+#	Where should we put the architecture build directories
+#
+build_dirs=.
+
+#
+#	Client/Server magic string
+#
+magic_string=hippi
+
+#
+#	hippisw configuration file
+#
+config_file=/usr/local/etc/hippisw/config.hippi
+
+#
+#	Where binaries should go
+#
+bin_dir=/usr/local/etc/hippisw/
+
+#
+#	Where man pages should go
+#
+man_dir=/usr/local/man
+
+#
+# When should the hippisw daemon require a password.
+# Current options are:
+#	kill_only	When it's be killed or reset.
+#	always		Any connection.
+
+require_password=kill_only
+
+# If defined this sets the facility used by hippiswd to log events.
+# By default it uses LOG_DAEMON.
+
+syslog=LOG_DAEMON
+
+# Any other compiler flags you want defined
+
+cflags=
+
+# Any other linker flags you want defined
+
+ldflags=
+
+
+

@@ -24,4 +24,5 @@
 	the terminal server disconnects after three bad passwords results
 	in maximum password send count never being reached.
 	FIX: check for "Password OK" string.
-
+ o	If daemon loses connection to a switch it doesn't realise it until
+	a user connects to the switch.

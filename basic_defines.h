@@ -9,6 +9,11 @@
 #define _BASIC_DEFINES_H
 
 
+/*
+ *	Architecture-specific configuration
+ */
+#include "./hippisw_config.h"
+
 
 /*
  *	Debugging stuff
