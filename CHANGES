@@ -7,6 +7,7 @@ From 0.2 Beta to 0.2.1 Beta:
 	BUG FIX: Fixed bug with mksw that caused it to not find the path
 		to the tester on the switch which the tester was
 		located.
+	ADDED: Documentation for metric option for link ports.
 
 From 0.1 Beta to 0.2 Beta:
 

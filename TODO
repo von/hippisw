@@ -12,9 +12,8 @@
 		connection, dying and killed.
  o	Add logging on daemon for address from accept call.
  o	Add setting of page size for ES-1.
- o	Add documentation for metric option on links.
- o	If first keyword in line is not recognized skip the whole line.
 
 		Current bug list
 
  o	None
+
