@@ -2,7 +2,7 @@
 #
 #	Makefile for hippisw
 #
-#	$Id: Makefile,v 1.6 1995/07/22 20:08:00 vwelch Exp $
+#	$Id: Makefile,v 1.7 1995/07/22 20:22:02 vwelch Exp $
 #
 ###########################################################################
 
@@ -97,6 +97,9 @@ clean:
 		cd `cat $(CONFIGURED_FILE)` ;\
 		rm -f $(OBJS) ;\
 	fi
+
+devclean:
+	rm -f *~ .#*
 
 clobber:
 	@ if [ -f $(CONFIGURED_FILE) ]; then \
