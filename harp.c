@@ -4,7 +4,7 @@
  *
  *	The map file is written to standard output.
  *
- *	$Id: harp.c,v 1.6 1995/10/10 19:22:36 vwelch Exp $
+ *	$Id: harp.c,v 1.7 1996/04/23 21:59:35 vwelch Exp $
  */
 #include <stdio.h>
 #include "basic_defines.h"
@@ -311,13 +311,13 @@ print_header(arch, out_file, host_port)
     comment(arch, out_file,
 	    "\n");
     comment(arch, out_file,
-	    "\tFile: /etc/gria.conf\n");
+	    "\tFile: /etc/grarp.conf\n");
     comment(arch, out_file,
 	    "\n");
     comment(arch, out_file,
 	    "\tFormat:\n");
     comment(arch, out_file,
-	    "\t gria <IP address> = <board #> <Ifield>\n");
+	    "\t<board> <IP address> <Ifield>\n");
     comment(arch, out_file,
 	    "\n");
     break;
@@ -446,7 +446,7 @@ print_entry(arch, out_file, map, local_host_port)
     if (use_dot_address)
       comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
 
-    fprintf(out_file, "%-24s\t0:0:0:0:0:0\t\t%#x\n",
+    fprintf(out_file, "gh0%d0 %-24sdw\t0:0:0:0:0:0\t\t%#x\n",
 	    hostname_to_string(hostname),
 	    logical_to_ifield(logaddr));
     break;
@@ -458,9 +458,9 @@ print_entry(arch, out_file, map, local_host_port)
     if (use_dot_address)
       comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
 
-    fprintf(out_file, "gria %s = %d %#x\n",
-      hostname_to_string(hostname),
+    fprintf(out_file, "gh%02d0\t%s\t%#x\n",
       local_host_port->giga_board_num,
+      hostname_to_string(hostname),
       logical_to_ifield(logaddr));
     break;
 

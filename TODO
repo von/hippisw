@@ -17,6 +17,7 @@
 	terminal server a chance to clear the port.
  o	Update Makefile to use install.
  o	harp convex output: remove old route before adding new
+ o	hippisw: Allow SIGINT to break out always
 
 
 		Current bug list
@@ -27,3 +28,5 @@
 	FIX: check for "Password OK" string.
  o	If daemon loses connection to a switch it doesn't realise it until
 	a user connects to the switch.
+ o	Ifield '-l' flag not working right.
+

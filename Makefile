@@ -2,7 +2,7 @@
 #
 #	Makefile for hippisw
 #
-#	$Id: Makefile,v 1.8 1995/08/16 00:46:25 vwelch Exp $
+#	$Id: Makefile,v 1.9 1996/04/23 21:59:33 vwelch Exp $
 #
 ###########################################################################
 
@@ -180,7 +180,7 @@ int_install:
 	@$(STRIP) $(BINS)
 	@$(INSTALL) $(BINS) $(BIN_DIR)
 	@if [ ! -d $(MAN_DIR) ]; then \
-		@echo Creating $(MAN_DIR)... ;\
+		echo Creating $(MAN_DIR)... ;\
 		install -d $(MAN_DIR) ;\
 		echo Making $(MAN_DIR) ;\
 		$(MKDIR) $(MAN_DIR) ;\
