@@ -5,6 +5,10 @@
 
  o	Add support to harp for CM5, HP, and others.
  o	Add hosts/nets to be gatewayed by a dxe (?)
+ o	Log failed password, failed connect, any failed write to switch
+ o	Combine log and syslog stuff.
+ o	Check syslog() stuff: failed connection, bad password, message on
+		connection, dying and killed.
 
 		Current bug list
 

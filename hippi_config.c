@@ -3,7 +3,7 @@
  *
  *	Read and dump the hippisw config file.
  *
- *	$Id: hippi_config.c,v 1.1 1995/02/28 23:17:20 vwelch Exp $
+ *	$Id: hippi_config.c,v 1.2 1995/03/27 16:50:47 vwelch Exp $
  */
 #include <stdio.h>
 
@@ -129,7 +129,7 @@ FILE *file;
   }
   fprintf(file, "\tPassword File: %s\n", daemon_config.password_file);
   fprintf(file, "\tLog File: %s\n", daemon_config.log_file);
-  fprintf(file, "\tMail Command: %s\n", daemon_config.mail_command);
+  fprintf(file, "\tLog Command: %s\n", daemon_config.log_command);
   fprintf(file, "\n");
 
   /*
@@ -191,6 +191,8 @@ FILE *file;
 	    sw->sw_bits_shifted, sw->sw_version);
     if (strlen(sw->sw_comment) > 0)
       fprintf(file, "   comment: %s\n", sw->sw_comment);
+    if (strlen(sw->sw_start_log) > 0)
+      fprintf(file, "   start log string: %s\n", sw->sw_start_log);
 
     FOR_EACH_PORT(sw->sw_ports, sp, spnum) {
       fprintf(file, "\t%s %-2d %s\t%-20s",

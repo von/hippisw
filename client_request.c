@@ -146,7 +146,7 @@ handle_logon(client_sock, request)
 
   conn = get_connection(sw);
 
-  if (conn->sw_sock == CONNECTION_ESTABLISHED) {
+  if (conn->switch_state != CONNECTION_ESTABLISHED) {
     log("Responding no connection for switch %s to %s@%s.\n",
 	conn->sw->sw_name, request->username, request->hostname);
     request->code = HIPPISWD_RSP_NO_CONN;
@@ -241,7 +241,9 @@ handle_restart(client_sock, request)
      int		client_sock;
      CLIENT_PACKET	*request;
 {
-
+  syslog(SYSLOG_RESTART,
+	 "Restarting on command from %s@%s.\n",
+	 request->username, request->hostname);
   log("Restarting on command from %s@%s.\n",
       request->username, request->hostname);
   request->code = HIPPISWD_RSP_RSOK;
@@ -262,6 +264,9 @@ handle_kill(client_sock, request)
      int		client_sock;
      CLIENT_PACKET	*request;
 {
+  syslog(SYSLOG_KILLED,
+	 "Dying on command from %s@%s.\n",
+	 request->username, request->hostname);
   log("Dying on command from %s@%s.\n",
       request->username, request->hostname);
   request->code = HIPPISWD_RSP_RSOK;

@@ -34,6 +34,9 @@ any problems or do any ports please let me know.
  1e) If you don't have gcc then change the definition of CC to gcc. You
 	will probably also have to uncomment the line defining NO_PROTOTYPES.
 
+ 1f) Normally the hippiswd daemon used the LOG_DAEMON facility to log things
+	to syslog(). This can be changed by defining SYSLOG_FACILITY.
+
 2) Run 'make'. It will create a architecture specific directory and build
 	all the object files and binaries in it.
 

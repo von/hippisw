@@ -16,14 +16,14 @@ struct daemon_config_struct {
   char		magic_string[MAGICLEN];
   char		password_file[PATHLEN];
   char		log_file[PATHLEN];
-  char		mail_command[PATHLEN];
+  char		log_command[PATHLEN];
 };
 
 #ifdef BUILD_CONFIG_STRUCTURES
 
 struct daemon_config_struct daemon_config =
 	{ "", 0, "", "bin/hippiswd", MAGIC_STRING, "config.hippi.password", 
-	    "hippiswd.log", "mailrc" };
+	    "hippiswd.log", "logcmd" };
 
 #else /* BUILD_CONFIG_STRUCTURES */
 

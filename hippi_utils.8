@@ -1,5 +1,5 @@
-.\" $Id: hippi_utils.8,v 1.1 1995/02/28 23:17:20 vwelch Exp $ "
-.TH HIPPI_UTILS 8 "$Date: 1995/02/28 23:17:20 $"
+.\" $Id: hippi_utils.8,v 1.2 1995/03/27 16:50:49 vwelch Exp $ "
+.TH HIPPI_UTILS 8 "$Date: 1995/03/27 16:50:49 $"
 .SH NAME
 hippi_cmd, hippi_config, ifield, mksw \- hippisw utilities
 .SH SYNOPSIS
@@ -107,6 +107,11 @@ the file (the device numbers).
 The -i option causes the output file to contain only IP addresses and not
 hostnames. The -C option specifies terse mode and suppresses all comments
 in the output.
+
+Currently supported hosts are: sgi (SGI native HIPPI for Challenge and
+Power Challenge series), cray (Cray YMP), dxe (NSC DXE HIPPI/FDDI router),
+convex (Convex native HIPPI under ConvexOS 11.x), and cs6400 (Cray Server
+6400).
 
 
 .SH FILES

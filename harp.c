@@ -4,7 +4,7 @@
  *
  *	The map file is written to standard output.
  *
- *	$Id: harp.c,v 1.1 1995/02/28 23:17:19 vwelch Exp $
+ *	$Id: harp.c,v 1.2 1995/03/27 16:50:44 vwelch Exp $
  */
 #include <stdio.h>
 #include "basic_defines.h"
@@ -29,7 +29,8 @@ enum system_type {
   ARCH_CRAY,			/* Cray				*/
   ARCH_SGI,			/* SGI				*/
   ARCH_DXE,			/* NSC DXE HIPPI gateway	*/
-  ARCH_CONVEX			/* CONVEX			*/
+  ARCH_CONVEX,			/* CONVEX			*/
+  ARCH_CS6400
 };
 
 struct token_mapping tokens[] = {
@@ -38,6 +39,7 @@ struct token_mapping tokens[] = {
   { "cray",		ARCH_CRAY },
   { "dxe",		ARCH_DXE },
   { "convex",		ARCH_CONVEX },
+  { "cs6400",		ARCH_CS6400 },
   { NULL,		0 }
 };
 
@@ -46,7 +48,8 @@ char *arches[] = {
   "Cray",
   "SGI",
   "NSC DXE gateway",
-  "Convex"
+  "Convex",
+  "CS6400",
 };
 
 
@@ -94,7 +97,7 @@ char **argv;
   int			errflg = 0;
 
 
-  while ( (c = getopt(argc, argv, "cC:iv")) != EOF)
+  while ( (c = getopt(argc, argv, "c:Civ")) != EOF)
     switch(c) {
 
     case 'c':
@@ -268,6 +271,19 @@ print_header(arch, out_file, host_port)
     comment(arch, out_file,
 	    "\n");
     break;
+
+  case ARCH_CS6400:
+    comment(arch, out_file,
+	    "\n");
+    comment(arch, out_file,
+	    "\tFile: /etc/opt/CYRShippi/hippi.art0\n");
+    comment(arch, out_file,
+	    "\n");
+    comment(arch, out_file,
+	    " Inet\t\t\t\tULA\t\t\tI-field\n");
+    comment(arch, out_file,
+	    "----------\t\t\t-------\t\t\t----------\n");
+    break;
   }
 }
 
@@ -370,6 +386,17 @@ print_entry(arch, out_file, map, local_host_port)
 	    logical_to_ifield(logaddr));
     break;
     
+  case ARCH_CS6400:
+    if (map->netaddr == NETADDR_NULL)
+      return;
+
+    if (use_dot_address)
+      comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
+
+    fprintf(out_file, "%-24s\t0:0:0:0:0:0\t\t%#x\n",
+	    hostname_to_string(hostname),
+	    logical_to_ifield(logaddr));
+    break;
   }
 }
 

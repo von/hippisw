@@ -39,9 +39,11 @@ static void make_pid_file	PROTO((VOID));
 static void remove_pid_file	PROTO((VOID));
 void graceful_death		PROTO((int exit_status));
 void restart			PROTO((VOID));
-static void cleanup		PROTO((VOID));
+static void cleanup		PROTO((char *reason));
 static void check_host		PROTO((char *specified_host,
 				       char *actual_host));
+
+
 #define HIPPISWD_PID_FILE	"hippiswd.pid"
 
 /*
@@ -81,7 +83,7 @@ main(argc, argv)
   struct timeval	*select_timeout, timeout;
 
 
-  /*	Save for restart		*/
+  /*	Save for restart()		*/
   hippiswd_argv = argv;
 
   /*	Chop off path from name		*/
@@ -146,7 +148,7 @@ main(argc, argv)
 	    HIPPISWD_PID_FILE, pid);
     fprintf(stderr, "already running. If not remove file %s in working directory.\n",
 	    HIPPISWD_PID_FILE);
-    exit();
+    exit(1);
   }
 
   /*
@@ -159,6 +161,8 @@ main(argc, argv)
 	    daemon_config.log_file);
     exit(1);
   }
+
+  init_syslog(myname);
 
   /*	Initialize table of connections			*/
   alloc_conn_table();
@@ -206,10 +210,10 @@ main(argc, argv)
    *		MAIN LOOP
    */
   while (!done) {
-    fd_set		readfds;
+    fd_set		readfds, exceptfds;
     Connection		*conn;
     int			conn_num;
-    static int		client_sock = CLOSED_SOCK;
+    int			client_sock = CLOSED_SOCK;
 
 
     /*
@@ -246,25 +250,32 @@ main(argc, argv)
     if (client_sock != CLOSED_SOCK)
       FD_SET(client_sock, &readfds);
     
-    if (select(max_fd, &readfds, NULL, NULL, select_timeout) < 0) {
+    /* Also check for exceptions. */
+    bcopy(&readfds, &exceptfds, sizeof(exceptfds));
+
+    if (select(max_fd, &readfds, NULL, &exceptfds, select_timeout) < 0) {
       log("select() error (errno = %d)\n", errno);
+      syslog(SYSLOG_DIED, "select() failed (%m). Exiting.");
       graceful_death(1);
     }
 
     FOR_ALL_CONNECTIONS(conn, conn_num) {
 
       if ((conn->client_state == CONNECTION_ESTABLISHED) &&
-	  FD_ISSET(conn->client_sock, &readfds))
+	  (FD_ISSET(conn->client_sock, &readfds) ||
+	  FD_ISSET(conn->client_sock, &exceptfds)))
 	handle_client_input(conn);
       
       if ((conn->switch_state == CONNECTION_ESTABLISHED) &&
-	  FD_ISSET(conn->sw_sock, &readfds))
+	  (FD_ISSET(conn->sw_sock, &readfds) ||
+	  FD_ISSET(conn->sw_sock, &exceptfds)))
 	handle_switch_input(conn);
     }
 
 
     if ((client_sock != CLOSED_SOCK) &&
-	FD_ISSET(client_sock, &readfds)) {
+	(FD_ISSET(client_sock, &readfds) ||
+	 FD_ISSET(client_sock, &exceptfds))) {
       handle_client_request(client_sock);
       client_sock = CLOSED_SOCK;
     }
@@ -411,22 +422,27 @@ signal_catcher(signum)
 
   case SIGTERM:
     log("Killed.\n");
+    syslog(SYSLOG_KILLED, "Caught terminate signal. Dying.");
     graceful_death(0);
     
   case SIGINT:
     log("Interrupted.\n");
+    syslog(SYSLOG_KILLED, "Caught interrupt signal. Dying.");
     graceful_death(0);
 
   case SIGBUS:
     log("Bus error, bye-bye!\n");
+    syslog(SYSLOG_DIED, "Bus error. Dying.");
     graceful_death(0);
     
   case SIGSEGV:
     log("Segment Violation, bye-bye!\n");
+    syslog(SYSLOG_DIED, "Segment violation. Dying.");
     graceful_death(0);
     
   default:
     log("Signal %d caught.\n", signum);
+    syslog(SYSLOG_DIED, "Caught signal %d. Dying.", signum);
     graceful_death(0);
   }
 }
@@ -564,7 +580,7 @@ void
 graceful_death(exit_status)
      int		exit_status;
 {
-  cleanup();
+  cleanup("Daemon dying.");
 
   exit(exit_status);
 }
@@ -579,10 +595,8 @@ restart()
   char			hippiswd_cmd[PATHLEN];
 
 
-  cleanup();
+  cleanup("Daemon restarting.");
  
-  close_log_file();
-
   /*
    * If the binary path starts with a '/' then don't append working directory.
    */
@@ -594,7 +608,10 @@ restart()
 
   execv(hippiswd_cmd, hippiswd_argv);
 
-  log("execv() call failed (errno = %d).\n", errno);
+  fprintf(stderr, "Exec of %s failed.\n", hippiswd_cmd);
+  perror("execv()");
+
+  syslog(SYSLOG_DIED, "Restart failed: %m");
 
   exit(0);
 }
@@ -604,7 +621,8 @@ restart()
  *	Clean up before death or restart
  */
 static void
-cleanup()
+cleanup(reason)
+     char		*reason;
 {
   Connection		*conn;
   int			conn_num;
@@ -613,7 +631,12 @@ cleanup()
 
   FOR_ALL_CONNECTIONS(conn, conn_num) {
     close_switch_conn(conn);
-    close_client_conn(conn);
+
+    if (conn->client_state == CONNECTION_ESTABLISHED) {
+      /* XXX - need CR? */
+      write_to_client(conn, reason, strlen(reason));
+      close_client_conn(conn);
+    }
   }
   
   log("Closing log file.\n");

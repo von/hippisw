@@ -20,7 +20,7 @@ enum keyword_values {
   KEYWD_MAGIC,
   KEYWD_PASSWDFILE,
   KEYWD_LOGFILE,
-  KEYWD_MAILCMD,
+  KEYWD_LOGCMD,
   KEYWD_COMMENT
 };
 
@@ -31,7 +31,9 @@ static struct token_mapping keywords[] = {
   { "magic",		KEYWD_MAGIC },
   { "passwdfile",	KEYWD_PASSWDFILE },
   { "logfile",		KEYWD_LOGFILE },
-  { "mailcmd",		KEYWD_MAILCMD },
+  /* For backwards compatibility */
+  { "mailcmd",		KEYWD_LOGCMD },
+  { "logcmd",		KEYWD_LOGCMD },
   { "#",		KEYWD_COMMENT },
   { NULL, 0 }
 };
@@ -87,8 +89,8 @@ hippiswd_conf()
       strncpy(daemon_config.log_file, argument, PATHLEN);
       break;
 
-    case KEYWD_MAILCMD:
-      strncpy(daemon_config.mail_command, argument, PATHLEN);
+    case KEYWD_LOGCMD:
+      strncpy(daemon_config.log_command, argument, PATHLEN);
       break;
 
     case KEYWD_COMMENT:

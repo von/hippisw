@@ -1,6 +1,6 @@
 .\" @(#)hosts.5 1.14 90/02/15 SMI; from UCB 4.2 "
-.\" $Id: config_hippi.5,v 1.1 1995/02/28 23:17:28 vwelch Exp $ "
-.TH CONFIG_HIPPI 5  "$Date: 1995/02/28 23:17:28 $"
+.\" $Id: config_hippi.5,v 1.2 1995/03/27 16:50:26 vwelch Exp $ "
+.TH CONFIG_HIPPI 5  "$Date: 1995/03/27 16:50:26 $"
 .SH NAME
 config.hippi \- HIPPI network description file
 .SH DESCRIPTION
@@ -28,7 +28,7 @@ remainder of a line is a comment and should be ignored.
 .TP 10
 .B hippiswd
 [dir <directory>] [host <host_name>] [port <port#>] [magic <magic_string>]
-[passwdfile <path>] [logfile <path>] [mailcmd <path>]
+[passwdfile <path>] [logfile <path>] [logcmd <path>]
 
 This line contains information about the hippiswd daemon. The options are:
 
@@ -62,10 +62,12 @@ config.hippi.passwd in the working directory. See config_hippi_passwd(5).
 The path of the log file. Defaults to hippiswd.log in the working directory.
 
 .TP
-.B mailcmd
+.B logcmd
 The command to be run when an unexpected event occurs on a HIPPI switch.
 The text of the event with be piped to the commands standard input.
-The default is "mailrc".
+By default the file logcmd in the hippiswd working directory is executed.
+It will be passed one argument, which is the name of the switch the output
+is from.
 
 .RE
 
@@ -116,6 +118,7 @@ By default it is 0x07.
 .B switch
 <switch_name> <switch_type> [size <max_port#>] [address <ip_address>]
 [port <port#>] [prompt <prompt_string>] [sms <sms version>]
+[start_log <string>]
 
 This line describes a HIPPI switch. All 'port' lines after it until
 the next 'switch' line are assumed to be describing ports on this
@@ -155,6 +158,14 @@ This option is for NSC switches and can be used to specify the version
 of switch management software (SMS) they are running. By default version
 1 is assumed, but version 2 is also supported.
 
+.TP
+.B start_log
+The option is used to control logging of unexpected output from a switch.
+Normally any output from a switch without an attached client is considered
+unexpected, but switches (or the terminal servers they are attached to) may
+spit output whne first connected to. If this option is present for a switch
+then all output from a switch is ignored until a line starting with this
+string is seen.
 .RE
 .TP 10
 .B dport <port#> <device> <device arguments...> <options>

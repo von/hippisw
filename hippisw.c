@@ -153,8 +153,6 @@ main(argc, argv)
       exit(0);
 
     default:
-      fprintf(stderr, "%s, unrecognized argument:  %s\n",
-	      argv[0], argv[optind]);
       errflg = TRUE;
     }
   }
@@ -715,6 +713,10 @@ handle_daemon_input(daemon_fd, user_file, got_prompt, prompt)
     return ERROR;
   }
  
+  /*
+   * If the string doesn't end with a carriage return, assume it's
+   * a prompt.
+   */
  if (buffer[strlen(buffer) - 1] != '\n')
     *got_prompt = TRUE;
 

@@ -21,33 +21,35 @@ enum keyword_values {
   KEYWD_PORT,
   KEYWD_PROMPT,
   KEYWD_SMS,
-  KEYWD_COMMENT
+  KEYWD_COMMENT,
+  KEYWD_START_LOG
 };
 
 static struct token_mapping keywords[] = {
-  { "address",	KEYWD_ADDRESS },
-  { "port", 	KEYWD_PORT },
-  { "prompt",	KEYWD_PROMPT },
-  { "size",	KEYWD_SIZE },
-  { "sms",	KEYWD_SMS },
-  { "comment",	KEYWD_COMMENT },
+  { "address",		KEYWD_ADDRESS },
+  { "port", 		KEYWD_PORT },
+  { "prompt",		KEYWD_PROMPT },
+  { "size",		KEYWD_SIZE },
+  { "sms",		KEYWD_SMS },
+  { "comment",		KEYWD_COMMENT },
+  { "start_log",	KEYWD_START_LOG },
   { NULL, 0 }
 };
 
 static struct token_mapping switch_keywords[] = {
-  { "p8",	HIPPISW_P8 },
-  { "ps4",	HIPPISW_PS4 },
-  { "ps8",	HIPPISW_PS8 },
-  { "ps32",	HIPPISW_PS32 },
-  { "ios4",	HIPPISW_IOSC4 },
-  { "iosc4",	HIPPISW_IOSC4 },
-  { "ios8",	HIPPISW_IOSC8 },
-  { "iosc8",	HIPPISW_IOSC8 },
-  { "netstar",	HIPPISW_NETSTAR },
-  { "giga",	HIPPISW_NETSTAR },
-  { "es1",	HIPPISW_ES1 },
-  { "virtual",	HIPPISW_VIRT },
-  { NULL,	0}
+  { "p8",		HIPPISW_P8 },
+  { "ps4",		HIPPISW_PS4 },
+  { "ps8",		HIPPISW_PS8 },
+  { "ps32",		HIPPISW_PS32 },
+  { "ios4",		HIPPISW_IOSC4 },
+  { "iosc4",		HIPPISW_IOSC4 },
+  { "ios8",		HIPPISW_IOSC8 },
+  { "iosc8",		HIPPISW_IOSC8 },
+  { "netstar",		HIPPISW_NETSTAR },
+  { "giga",		HIPPISW_NETSTAR },
+  { "es1",		HIPPISW_ES1 },
+  { "virtual",		HIPPISW_VIRT },
+  { NULL, 0}
 };
 
 /*
@@ -109,6 +111,7 @@ switch_conf()
   NULL_STRING(sw->sw_comment);
   sw->sw_virt_attached  = NULL;
   NULL_STRING(sw->sw_password);
+  NULL_STRING(sw->sw_start_log);
   
   /*
    *	Read rest of options
@@ -173,6 +176,9 @@ switch_conf()
     case KEYWD_COMMENT:
       strncpy(sw->sw_comment, argument, COMMENTLEN);
       break;
+
+    case KEYWD_START_LOG:
+      strncpy(sw->sw_start_log, argument, STARTLOGLEN);
     }
   }
 

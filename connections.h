@@ -25,11 +25,13 @@ typedef enum	{		/* Connection states			*/
 
 typedef struct	{
   Conn_state		switch_state;		/* Connection state	*/
+  Boolean		conn_fail_logged;	/* Logged conn failure?	*/
   int			last_status;		/* Last telnet() value	*/
   int			telnet_state;		/* For telnet()		*/
   SWITCH		*sw;			/* Switch		*/
   Boolean		got_prompt;		/* Gotten prompt?	*/
   char			prompt_char;		/* Last char of prompt	*/
+  Boolean		log_unexpected;		/* Log unexpected output? */
   int			sw_sock;		/* Socket to switch	*/
   FILE			*sw_in;			/* Stream from switch	*/
   FILE			*sw_out;		/* Stream to switch	*/
@@ -68,12 +70,6 @@ void dump_connections		PROTO((FILE *out_stream));
 
 int open_switch_conn		PROTO((Connection *conn));
 void close_switch_conn		PROTO((Connection *conn));
-int write_to_switch		PROTO((Connection *conn,
-				       char *buffer,
-				       int len));
-int read_from_switch		PROTO((Connection *conn,
-				       char *buffer,
-				       int len));
 
 int new_client			PROTO((Connection *conn,
 				       int sock,
@@ -81,9 +77,6 @@ int new_client			PROTO((Connection *conn,
 				       char *hostname,
 				       int flags));
 int close_client_conn		PROTO((Connection *conn));
-int write_to_client		PROTO((Connection *conn,
-				       char *string,
-				       int len));
 
 
 #endif /* _CONNECTIONS_H */

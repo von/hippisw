@@ -75,6 +75,9 @@ struct sw	{			/* Switch description structure	*/
 					      are attached to. NULL for
 					      all other switches.	*/
   char		sw_password[PASSWDLEN]; /* Password for switch		*/
+  char		sw_start_log[STARTLOGLEN];
+  					/* String to start logging of
+					   unexpected events		*/
   struct sw	*sw_next;		/* For the list			*/
 };
 

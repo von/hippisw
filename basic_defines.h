@@ -63,8 +63,9 @@ typedef	int		Boolean;
 #define	PASSWDLEN	20			/* Password lengths */
 #define TIMELEN		18			/* Length of time strings */
 #define COMMENTLEN	40			/* Length of comment */
-#define PATHLEN		120			/* Lenght of dir pathes */
-#define PIDLEN		8			/* Lenght of PID */
+#define PATHLEN		120			/* Length of dir pathes */
+#define PIDLEN		8			/* Length of PID */
+#define STARTLOGLEN	40			/* Length of start log string */
 
 /*
  *	Convert a string to an integer.

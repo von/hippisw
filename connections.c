@@ -27,10 +27,7 @@ int conn_table_size = 0;
 
 
 static int do_connect		PROTO((char *hostname, int port));
-static Boolean poll_switch	PROTO((Connection *conn));
 
-
-#define SELECT_TIMEOUT		2		/* Seconds	*/
 
 /*
  *	Return codes for do_connect();
@@ -75,14 +72,13 @@ alloc_conn_table()
       conn->switch_state = CONNECTION_NULL;
     else
       conn->switch_state = NO_CONNECTION;
+    conn->conn_fail_logged = FALSE;
     conn->sw = sw;
     conn->got_prompt = FALSE;
     conn->prompt_char = sw->sw_prompt[strlen(sw->sw_prompt) - 1];
     conn->sw_sock = CLOSED_SOCK;
     conn->sw_in = CLOSED_FILE;
     conn->sw_out = CLOSED_FILE;
-    conn->passwd_count  = 0;
-    
     conn->client_state = NO_CONNECTION;
     conn->client_sock = CLOSED_SOCK;
     conn->client_in = CLOSED_FILE;
@@ -138,7 +134,10 @@ dump_connections(out_stream)
 	fprintf(out_stream, "Got prompt.\n");
       else
 	fprintf(out_stream, "Waiting for prompt.\n");
-      
+
+      if (conn->log_unexpected)
+	fprintf(out_stream, "\tLogging unexpect switch events.\n");
+       
       if (conn->client_state == CONNECTION_ESTABLISHED) {
 	fprintf(out_stream, "\tUser %s@%s connected since %s.\n",
 		conn->client_name, conn->client_hostname,
@@ -178,12 +177,25 @@ open_switch_conn(conn)
     case UNKNOWN_HOST:
       log("Couldn't resolve name \"%s\" for switch \"%s\"\n",
 	  sw->sw_hostname, sw->sw_name);
+      syslog(SYSLOG_SW_FAILED_CONN,
+	    "Couldn't resolve name \"%s\" for switch \"%s\"\n",
+	    sw->sw_hostname, sw->sw_name);
       conn->switch_state = CONNECTION_FAILED;
       return ERROR;
      
     case CONNECT_FAILED:
       log("Connect to %s (%s port %d) failed.\n",
 	  sw->sw_name, sw->sw_hostname, sw->sw_tport);
+
+      /* If we haven't logged this connection failure then do so.
+       */
+      if (conn->conn_fail_logged == FALSE) {
+	conn->conn_fail_logged = TRUE;
+	syslog(SYSLOG_SW_FAILED_CONN,
+	       "Couldn't connect to switch %s (%s port %d).",
+	       sw->sw_name, sw->sw_hostname, sw->sw_tport);
+      }
+
       return ERROR;
     }
   
@@ -194,15 +206,36 @@ open_switch_conn(conn)
   conn->sw_sock = sock;
   conn->sw_in = fdopen(sock, "r");
   conn->sw_out = fdopen(sock, "w");
-  
+  conn->passwd_count = 0;
+
+  /*
+   *  If given a string to start logging on then set flag to false until
+   *	string is encountered, otherwise start logging immediately.
+   */
+  if (strlen(sw->sw_start_log) != 0)
+    conn->log_unexpected = FALSE;
+  else
+    conn->log_unexpected = TRUE;
+
   if ((conn->sw_in == NULL) || (conn->sw_out == NULL)) {
     log("fdopen() failed. Exiting.\n");
+    syslog(SYSLOG_DIED, "fdopen() failed (%m). Exiting.");
     graceful_death(1);
   }
 
   telnet_init(sock);
   
   log("Connected to %s.\n", sw->sw_name);
+
+  /* If we previously logged a failure connecting to this switch
+   * then log our success.
+   */
+  if (conn->conn_fail_logged == TRUE) {
+    conn->conn_fail_logged = FALSE;
+    syslog(SYSLOG_SW_FAILED_CONN,
+	   "Established connection top %s.\n",
+	   sw->sw_name);
+  }
 
   return NO_ERROR;
 }
@@ -229,141 +262,6 @@ close_switch_conn(conn)
 
 
 /*
- *	Write a string to a switch.
- */
-int
-write_to_switch(conn, string, len)
-     Connection			*conn;
-     char			*string;
-     int			len;
-{
-  char		buffer[BUFFERLEN];
-  register int	read_pos = 0, write_pos = 0;
-  
-
-  while (read_pos < len) {
-    /*
-     *	Parse string handling backslash characters and converting
-     *	carriage returns.
-     */
-    for ( write_pos = 0;
-	 (read_pos < len) && (write_pos < BUFFERLEN); ) {
-      char c = string[read_pos];
-
-      switch(c) {
-      case '\n':	/* STRIP */
-      case '\r':
-      case '\0':
-	read_pos++;
-	break;
-
-      case '\\':
-	read_pos++;
-	c = string[read_pos++];
-	switch(c) {
-	case 'n':
-	  buffer[write_pos++] = '\r';
-	  buffer[write_pos++] = '\n';
-	  break;
-
-	default:
-	  buffer[write_pos++] = c;
-	  break;
-	}
-	break;
-
-      default:
-	buffer[write_pos++] = string[read_pos++];
-      }
-    }
-    
-    buffer[write_pos++] = '\r';
-    buffer[write_pos++] = '\n';
-
-    /*
-     *	We dont't actually want to send the NULL.
-     */
-    buffer[write_pos] = '\0';
-
-    write(conn->sw_sock, buffer, write_pos);
-  }
-
-  return NO_ERROR;
-}
-
-
-
-/*
- *	Read a line of input from a switch.
- *
- *	Returns ERROR or number of bytes read.
- */
-int
-read_from_switch(conn, buffer, len)
-     Connection			*conn;
-     char			*buffer;
-     int			len;
-{
-  int			bytes_read = 0;
-  int			byte;
-  Boolean		done = FALSE;
-
-
-  NULL_STRING(buffer);
-
-  /*
-   *	If last read attempt returned an empty buffer, the poll
-   *	for data first.
-   */
-  if (conn->last_status == TELNET_EOB)
-    if (poll_switch(conn) == FALSE)
-      return 0;
-
-  while(!done) {
-    byte = telnet(conn->sw_sock, &conn->telnet_state);
-
-    conn->last_status = byte;
-
-    switch(byte) {
-      
-    case 0:
-      continue;		/* Ignore nulls	*/
-
-    case TELNET_EOF:
-      close_switch_conn(conn);
-      log_message(conn->sw->sw_name, "Got EOF.\n");
-      if (conn->client_state == CONNECTION_ESTABLISHED)
-	close_client_conn(conn);
-      return ERROR;
-
-    case TELNET_EOB:
-      if (poll_switch(conn) == FALSE)
-	done = TRUE;
-      break;
-
-    case TELNET_OVERFLOW:
-      log_message("telnet", "telnet buffer overflow!\n");
-      graceful_death(1);
-
-    case '\r':			/* Strip */
-      continue;
-
-    default:			/* Real character	*/
-      buffer[bytes_read++] = (char) byte;
-      buffer[bytes_read] = '\0';
-      /* Are we done with the line?			*/
-      if (byte == '\n' ||
-	  (byte == conn->prompt_char && is_prompt(conn, buffer)) ||
-	  (byte == PASSWD_PROMPT_CHAR && is_password_prompt(buffer)))
-	done = TRUE;
-    }
-  }
-
-  return bytes_read;
-}
-  
-    
-/*
  *	Attach a new client to a switch.
  *
  */
@@ -382,6 +280,7 @@ new_client(conn, sock, username, hostname, flags)
 
   if ((conn->client_in == NULL) || (conn->client_out == NULL)) {
     log("fdopen() failed. Exiting.\n");
+    syslog(SYSLOG_DIED, "fdopen() failed (%m). Exiting.");
     graceful_death(1);
   }
 
@@ -415,27 +314,6 @@ close_client_conn(conn)
 
 
 /*
- *	Write a string to the client.
- */
-int
-write_to_client(conn, string, len)
-     Connection			*conn;
-     char			*string;
-     int			len;
-{
-  char				length;
-
-  len++;				/* Include NULL */
-
-  length = (char) len;
-
-  write(conn->client_sock, &length, sizeof(char));
-	
-  return write(conn->client_sock, string, len);
-}
-
-
-/*
  *	Connect to a host and port.
  *
  *	Returns socket descriptor on success negitive on failure (see
@@ -460,6 +338,7 @@ do_connect(hostname, port)
 
   if (sock == -1) {
     log("do_connect(): socket() failed (errno = %d).\n", errno);
+    syslog(SYSLOG_DIED, "socket() failed (%m). Exiting.");
     graceful_death(1);
   }
 
@@ -476,39 +355,3 @@ do_connect(hostname, port)
   return sock;
 }
 	
-
-/*
- *	Poll a switch for input.
- *
- *	Returns TRUE if data is waiting, FALSE otherwise.
- */
-static Boolean
-poll_switch(conn)
-     Connection			*conn;
-{
-  struct timeval	timeout;
-  fd_set      		readfds;
-  static int		max_fd = -1;
-
-  
-  if (max_fd == -1)
-    max_fd = (int) ulimit(4, 0);
-
-  FD_ZERO(&readfds);
-  FD_SET(conn->sw_sock, &readfds);
-  
-  if (conn->got_prompt == TRUE) {
-    timeout.tv_usec = timeout.tv_sec = 0;
-
-  } else {
-    timeout.tv_usec = 0;
-    timeout.tv_sec = SELECT_TIMEOUT;
-  }
-  
-  if (select(max_fd, &readfds, NULL, NULL, &timeout) < 0) {
-    log("select() error %d\n", errno);
-    return FALSE;
-  }
-  
-  return FD_ISSET(conn->sw_sock, &readfds);
-}

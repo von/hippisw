@@ -2,7 +2,7 @@
 #
 #	Makefile for hippisw
 #
-#	$Id: Makefile,v 1.2 1995/03/09 22:22:53 vwelch Exp $
+#	$Id: Makefile,v 1.3 1995/03/27 16:50:16 vwelch Exp $
 #
 ###########################################################################
 
@@ -19,10 +19,16 @@ MAN_DIR		=	/usr/local/man
 # Normally the hippiswd daemon only requires a password for killing and
 # restarting it. If you want any connection to the daemon to require
 # a password define HIPPISWD_REQUIRE_PASSWD.
+
 #REQUIRE_PASSWORD	=	-DHIPPISWD_REQUIRE_PASSWD
 
-#	End configurable parameters
+# If defined this sets the facility used by hippiswd to log events.
+# By default it uses LOG_DAEMON.
 
+#SYSLOG_FACILITY	=	-DLOG_DAEMON
+
+#	End configurable parameters
+#
 ###########################################################################
 
 # SGI needs this
@@ -55,7 +61,7 @@ CC		=	gcc
 
 ###########################################################################
 
-CFLAGS =	-g $(PROTOTYPES) $(REQUIRE_PASSWORD)  \
+CFLAGS =	-g $(PROTOTYPES) $(REQUIRE_PASSWORD)  $(SYSLOG_FACILITY) \
 		-DMAGIC_STRING=\"$(MAGIC_STRING)\"  \
 		-DCONFIG_FILE=\"$(CONFIG_FILE)\" \
 		$(DEBUG)
@@ -70,17 +76,17 @@ DSRCS	=	address_config.c address_map.c find.c hippiswd_conf.c \
 
 INCS	=	address_config.h address_map.h basic_defines.h \
 		client_request.h connections.h daemon_config.h find.h \
-		handle_input.h ifield.h ip_addr.h logger.h logical_addr.h \
-		parse_file.h parse_token.h password_config.h path.h port.h \
-		portlist.h prompt.h read_config.h sw_output.h switch.h \
-		switch_map.h switchlist.h telnet.h time_string.h
+		handle_input.h handle_output.h ifield.h ip_addr.h logger.h \
+		logical_addr.h parse_file.h parse_token.h password_config.h \
+		path.h port.h portlist.h prompt.h read_config.h sw_output.h \
+		switch.h switch_map.h switchlist.h telnet.h time_string.h
 
 # Binary sources
 BSRCS	=	harp.c hippi_cmd.c hippi_config.c ifield.c mksw.c 
 
 DAEMON_SRCS =	hippiswd.c \
-		connections.c client_request.c handle_input.c logger.c \
-		password_config.c prompt.c telnet.c time_string.c
+		connections.c client_request.c handle_input.c handle_output.c \
+		logger.c password_config.c prompt.c telnet.c time_string.c
 
 CLIENT_SRCS =	hippisw.c
 
