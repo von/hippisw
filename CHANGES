@@ -1,0 +1,14 @@
+
+
+		CHANGES
+
+From previous version (unlabeled) to 0.1:
+
+	Code nearly completely rewritten. Functional changes include:
+	  -Ports that need to be disabled (PS32 18C boards) must now be
+	   so indicated in the config.hippi file with the 'needdisabled'
+	   option.
+	  -Added ablitiy to dynamically configure most daemon parameters.
+	  -Seperate address line in configuration file for address-
+	   related stuff.
+	  -Different types of default logical address are selectable.

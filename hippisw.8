@@ -1,0 +1,98 @@
+.\" $Id: hippisw.8,v 1.1 1995/02/28 23:17:25 vwelch Exp $
+.TH HIPPISW 8 "$Date: 1995/02/28 23:17:25 $"
+.SH NAME
+hippisw \- Client program used to send commands to hippiswd
+.SH SYNOPSIS
+.nf
+.ft B
+hippisw [-c <config file>] [-u] [-r] [-s] [-k] [-n|l] [-v] [-P]
+[-h host] [-p port] [-f input file] [ switchname ]
+.SH DESCRIPTION
+hippisw is a client program for use with the hippiswd daemon. It connects
+to the daemon and then allows you to connect to any of the switches the
+daemon is connected to. Once connected to a switch the hippisw and
+hippiswd simply act to pass commands from the user to the switch and
+return switch output back to the user.
+
+hippisw will also take piped input to stdin and send it out to the
+switches. A common application of this is 'mksw | hippisw' which
+will configure all the logical addresses on all the switches.
+
+.SH OPTIONS
+.LP
+.nf
+.RS
+.DT
+.ft B
+-c <file>     Specify a configuration file other that the default.
+
+-h <host>     Specify the name of host running hippiswd. The
+              default is the name given by the host option from
+              the hippiswd line in the HIPPI configuration file.
+
+-p <port>     Specify a port number at which to contact the
+              hippiswd daemon. The default is the value given by
+              the port option from the hippiswd line in the HIPPI
+              configuration file.
+ 
+-f <file>     File containing commands to send to the daemon.
+ 
+-u            Usurp any connection to the switch.
+ 
+-d            Request a dump of the state of all the daemons current
+              connections to switches and clients.
+
+-r            Restart hippiswd.
+       
+-k            Kill hippiswd.
+ 
+-s            Ping hippiswd just to check its status.
+ 
+-n            Suppress logging of commands and switch responses.
+              This is the default.
+
+-l            Preform logging of commands and switch responses.
+ 
+-v            Print version information and exit.
+
+-P            Have hippisw ask for password to send to hippiswd.
+              This needed if the daemon and client are out of sync
+              and the daemon is requiring a password for things
+              the client doesn't think it needs one for.
+
+switchname    Name of the switch to connect to.
+              Valid choices are listed in the HIPPI configuration
+              file.
+.ft R
+.RE
+.fi
+.LP
+.SH COMMANDS
+Two special commands are recognized:
+.LP
+.nf
+.RS
+.DT
+.ft B
+switch switchname
+	This causes the hippiswd to connect the user to the switch
+	indicated by switchname.
+
+quit
+	This causes the client to terminate.
+.ft R
+.RE
+.fi
+.LP
+.SH FILES
+.PD 0
+.TP 20
+.B config.hippi
+The HIPPI configuration file. This file contains the name and
+port number where the server is running, as well as the layout
+of the HIPPI network.
+.PD
+.SH "SEE ALSO"
+.BR hippiswd (8)
+.BR config_hippi (5)
+

@@ -1,0 +1,324 @@
+.\" @(#)hosts.5 1.14 90/02/15 SMI; from UCB 4.2 "
+.\" $Id: config_hippi.5,v 1.1 1995/02/28 23:17:28 vwelch Exp $ "
+.TH CONFIG_HIPPI 5  "$Date: 1995/02/28 23:17:28 $"
+.SH NAME
+config.hippi \- HIPPI network description file
+.SH DESCRIPTION
+The config.hippi file contains a description of the HIPPI network
+for use by the hippiswd daemon and other HIPPI network utilities.
+.SH FORMAT
+ The HIPPI network configuration file contains lines, each containing
+configuration for a particular thing. The first keyword on the line
+indicates what the line is for, with the rest of the line specifing
+the configuration.
+
+ The different types of lines are hippiswd, for the configuration of
+the daemon, address, for specifying logical and IP address configuration,
+switch, for specifying a HIPPI switch, and port, for specifying a port
+on a switch.
+
+ Carriage returns may be escaped with a backslash (\\) allowing
+configuration lines to span multiple lines and increase readability.
+
+ Comments may also be included. A pound sign (#) indicates that the
+remainder of a line is a comment and should be ignored.
+
+ The format of the different lines is as follows:
+
+.TP 10
+.B hippiswd
+[dir <directory>] [host <host_name>] [port <port#>] [magic <magic_string>]
+[passwdfile <path>] [logfile <path>] [mailcmd <path>]
+
+This line contains information about the hippiswd daemon. The options are:
+
+.RS 5
+.TP 10
+.B dir
+This gives the working directory of the daemon. All other paths are assumes
+to start from this directory unless they begin with a '/'.
+
+.TP
+.B host
+The hostname where the daemon is running.
+
+.TP
+.B port
+The port the daemon is listening on.
+
+.TP
+.B magic
+The magic string used by the client to access the daemon. Normally this is
+set at compile time, but can be overridden with this option. This provides
+a rudimentary form of security.
+
+.TP
+.B passwdfile
+The path of the password file that is read by the daemon. Defaults to
+config.hippi.passwd in the working directory. See config_hippi_passwd(5).
+
+.TP
+.B logfile
+The path of the log file. Defaults to hippiswd.log in the working directory.
+
+.TP
+.B mailcmd
+The command to be run when an unexpected event occurs on a HIPPI switch.
+The text of the event with be piped to the commands standard input.
+The default is "mailrc".
+
+.RE
+
+.TP 10
+.B address
+[network <network address>] [loopback <loopback address>]
+[default_type <type>] [mode_bits <value>]
+
+This line contains address information to be used for configuration. The
+options are:
+
+.RS 5
+.TP 10
+.B network
+This value gives an internet network address to be used for temporary hostnames.
+A hostname of "hippi-yyy" may be given, in which case an IP address that is
+a conjunction of yyy and the network address. For example if "network
+10.11.12.0" is given as an option and later "hippi-154" is given as a
+hostname, it will be assigned an IP address of 10.11.12.154. This feature
+was intended for situations where hostnames may not be known ahead of
+time.
+
+.TP
+.B loopback
+This gives a legal logical address (0x000-0xfff) that is assigned to all
+configured ports as a loopback address. The default is 0x000.
+
+.TP
+.B default_type
+This option controls the default logical addresses that are assigned to
+HIPPI devices. There are several options: "none" - no logical addresses
+are signed by default. "1374" - logical addresses are assigned as suggested
+by RFC 1374 (switch number left shifted by 5 bits summmed with the port
+number). "ip8" - logical addresses are set to the lower 8 bits of the IP
+address. "ip12" - logical addresses are set to the lower 12 bits of the
+IP address. For the last two options only hosts with an assigned IP number
+are giving logical addresses by default. The default method of assignment
+is 1374.
+
+.TP
+.B mode_bits
+This specifies the mode bits to use for ifields containing logical addresses.
+By default it is 0x07.
+
+.RE
+
+.TP 10
+.B switch
+<switch_name> <switch_type> [size <max_port#>] [address <ip_address>]
+[port <port#>] [prompt <prompt_string>] [sms <sms version>]
+
+This line describes a HIPPI switch. All 'port' lines after it until
+the next 'switch' line are assumed to be describing ports on this
+switch. The options and arguments are:
+
+.RS 5
+.TP 10
+.B switch_name
+The name given for the switch.
+
+.TP
+.B switch_type
+One of PS4, P8, PS8, PS32, IOSC4 (IOSC 4x4), IOSC8 (IOSC 8x8), NETSTAR
+(Netstar Cluster Switch), or ES1 (Essential ES-1).
+
+.TP
+.B size	
+The maximum allowed port number on the switch.  Used to double-check
+the configuration.
+
+.TP
+.B address	
+The IP address or hostname used to connect to the switch (via telnet).
+
+.TP
+.B port
+The port number used to connect to the switch. Default is the telnet port.
+
+.TP
+.B prompt
+The prompt string of the switch if different than the default switch
+prompt. 
+
+.TP
+.B sms
+This option is for NSC switches and can be used to specify the version
+of switch management software (SMS) they are running. By default version
+1 is assumed, but version 2 is also supported.
+
+.RE
+.TP 10
+.B dport <port#> <device> <device arguments...> <options>
+.TP
+.B port <port#> <device> <device arguments...> <options>
+
+The line describes a port on the switch described by the previous switch
+line. dport indicates the port is a dual wide. All port or dport lines
+must be preceded by a switch line which the port is assumed to be a part
+of. The format of the rest of the line depends on the type of device attached.
+
+.RS 5
+.TP
+.B device <device_name>
+
+A device entry indicates some sort of device that requires no IP number.
+
+
+.TP
+.B link <switch_name>
+
+A link entry indicates a link to another HIPPI switch which is indicated
+by switch_name. 
+
+.TP
+.B host <host_name>
+
+A host entry indicates a HIPPI host with an IP address. The host name
+should either be resolvable to a host name or of the 'hippi-###' type.
+
+.TP
+.B dx <gateway_name>
+.TP
+.B cntfddi <gateway_name>
+
+A gateway, either a NSC dx/dxe HIPPI/FDDI router or a CNT router.
+
+.TP
+.B tester <tester_name>
+	
+One tester port is currently allowed. This port is treated as a
+device except that a group of logical addresses are setup to use for
+loopback testing through switches.  The addresses are of the form 0xF0n,
+where n is the switch number. A connection of using a 0xF0n logical
+address will go to switch n and then back to the tester port. Only one
+tester is allowed.
+
+.RE
+
+Options allowed on port configurations are:
+
+.RS 5
+.TP
+.B addhost <hostname> <address>
+
+Associate an additional IP host with a host port. The address may already
+be a logical address in use by that port. This option is only valid on
+host or gateway ports.
+
+.TP
+.B addr [<comment>] <address>
+
+Associate an additional logical address with a port. The comment if given
+will also be associated with this mapping and will be included in
+configuration output. The comment may be multiple words encased in
+double quotes. It must be start with a non-numeric character so that it
+can be distinguished from the address. This option is not valid on links.
+
+.TP
+.B comment <comment>
+
+Associate a comment with a port that will be displayed in configuration
+outputs. The comment can be multiple words encased in double quotes.
+
+.TP
+.B default <address>
+
+Override the default logical address (if any) for the port. The address
+may be the string "none" in which case no default logical address will be
+assigned to the port. This option is not valid on links.
+
+.TP
+.B dev <in #> <out #>
+
+Specify input and output device numbers. This option is required for
+Cray hosts in order to correctly generate their IP/Ifield mapping
+files.
+
+.TP
+.B mtu <mtu>
+
+Specific a maximum IP MTU. Valid on on a host or gateway port.
+
+.TP
+.B needdisabled
+
+This options indicates that the port must be disabled in order to be
+configured. This is the case with the older NSC 18C boards in PS32s.
+
+.TP
+.B tester
+
+This option indicates that this port should be treated as the tester port.
+It is not valid on links.
+
+
+.fi
+.ft R
+.RE
+
+Additionally carriage returns may be escaped by backslashes and comments
+may be entered using "#" signs.
+
+
+.SH EXAMPLE
+
+.RS
+.nf
+.ft B
+
+
+# Configuration file for HIPPI network
+#
+
+hippiswd \\
+        dir            /usr/local/hippisw \\
+        host           hippisun \\
+        port           1874 \\
+        passwd         whatever
+
+address \\
+        network        10.11.12.0 \\
+        default_type   ip8 \\
+        mode_bits      0x03
+
+switch	toggle PS32 \\
+	size 32 address 10.167.9.17 port 2023
+
+port  2    host     uy-hippi         dev 40 50
+port  3    host     cm5-hippi \\
+                    addr fp 0xcf0 \\
+                    addr ph 0xcf1
+port  6    dx       franklin-hippi         mtu 65280
+port  7    device   hxa                        
+port  20   device   psitech
+port  21   tester   hippi-tester
+port  24   link     dip
+
+switch        dip PS32 \\
+	size 32 address 10.167.9.18 port 2023 prompt SMS>
+
+port	2	link	toggle
+port	3	host	dali
+.fi
+.ft R
+.RE
+
+
+.SH "ACKNOWLEDGMENTS"
+To William Diech (will@surya.caltech.edu) for use of his strqtok() function
+in parsing this file.
+
+.SH "SEE ALSO"
+.BR config_hippi_passwd (5),
+.BR hippisw (8),
+.BR hippiswd (8),
+.BR hippi_utils(8)

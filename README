@@ -1,0 +1,83 @@
+
+			
+			HIPPI Switch Utilities
+
+These are a set of utilities designed for setting up and managing a HIPPI
+network. The utilities use a configuration file describing the HIPPI LAN
+to offer the following services:
+
+	- Generate configuration files that setup logical addresses on
+		the HIPPI switches (as per RFC 1374).
+
+	- Generate configuration files for hosts on the LAN.
+
+	- A daemon that connects to all switches via telnet and offers
+		a combined interface too them. It also monitors the
+		switches for unexpected output.
+
+	- Computation of source routes.
+
+
+Systems supported:
+	All utilities are current tested on a Sun Sparcstation running
+	4.1.2. I don't know of any reason they won't work on any
+	decent Unix box, but I sure there's something.
+
+See INSTALLATION for building and installation instructions.
+
+
+Description of Utilities:
+
+
+hippiswd
+
+This program is designed to run as a daemon.  It connects to the
+switches on the network and logs any unexpected output from them to
+the file "hippiswd.log" in this directory.  In addition, it listens
+on a TCP socket. hippisw client programs can connect and send commands
+to the switches. Switch responses are sent back to the client. Logging
+of all transactions is available.
+
+
+hippisw
+
+This is the client program for hippiswd.  It is used to connect to
+hippiswd and send commands to the HIPPI switches. It enforces flow
+control as to not overrun the buffers on the switch. It can take
+interactive input, input from a file, or piped input.
+
+
+mksw
+
+A program which reads the switch configuration file and outputs a 
+file of commands to set logical address to physical port mappings
+in the HIPPI switches. By default it assigns logical addresses as
+specified by RFC 1374. Different addressing schemes may be used
+and independent addresses may also be assigned.
+
+Additionally if a tester is configured on the HIPPI network mksw will
+set up a loopback address for each switch. This address (which is in
+the form of 0xf## where ## is the switch number) will route any
+connection to a switch and then back from the switch to the tester.
+It's intended purposed is for connectivity testing.
+
+Switches supported:
+	Avaika/IOSC 4x4 and 8x8, Essential ES-1, Netstar Cluster
+	Switch, NSC PS-32
+
+
+harp
+
+This program generates HIPPI ARP tables for various architectures as
+well as an /etc/hosts format.
+
+Hosts supported:
+	SGI, Cray, Convex, NSC DXE HIPPI/FDDI router
+
+
+ifield
+
+This program returns logical addresses for given hosts and will also
+calculate source routes given a path on the network.
+
+Von Welch (vwelch@ncsa.uiuc.edu)

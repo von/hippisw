@@ -1,0 +1,77 @@
+.\" @(#)hosts.5 1.14 90/02/15 SMI; from UCB 4.2
+.\" $Id: config_hippi_passwd.5,v 1.1 1995/02/28 23:17:28 vwelch Exp $
+.TH CONFIG_HIPPI_PASSWD 5  "$Date: 1995/02/28 23:17:28 $"
+.SH NAME
+config.hippi.passwd \- hippiswd password file
+.SH DESCRIPTION
+The config.hippi.passwd file contains passwords that are used by
+hippiswd to authenticate connecting users as well as connect to the
+switches.
+.SH FORMAT
+ The hippiswd password configuration file contains lines specifying
+various passwords. Any line begining with a pound sign is taken to
+be a comment. The first word in a line indicates what the password is
+for. 
+
+ Note that due to the manner that this file is parsed, lines in the
+file should appear in the same order they do here.
+
+ The passwords that can be specified are:
+
+.TP 10
+.B default <password>
+
+A default statement sets all passwords to it's value. This statement should
+appear first in the file, since it's parsing will override all passwords.
+
+.TP 10
+.B switches <password>
+
+This sets the default password hippiswd will use for any switches not
+later explicitly set with a switch line (below).
+
+.TP 10
+.B switch <switch name> <password>
+
+This sets the password for a specific switch.
+
+.TP 10
+.B hippiswd <password>
+
+This sets the password hippiswd requires from a connecting client. Depending
+on the configuration this can always be required or only for certain
+commands.
+
+.fi
+.ft R
+.RE
+
+.SH EXAMPLE
+
+.RS
+.nf
+.ft B
+
+#
+#	hippiswd password configuration file
+#
+#
+# Password hippiswd requires from clients
+hippiswd	Hello
+#
+# Password used by hippiswd connecting to switches
+switches	Sesame
+#
+# Except for switch toggle
+switch          toggle        foobar
+.fi
+.ft R
+.RE
+
+
+
+.SH "SEE ALSO"
+.BR config_hippi (5),
+.BR hippisw (8),
+.BR hippiswd (8),
+.BR hippi_utils(8)

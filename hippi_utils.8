@@ -1,0 +1,123 @@
+.\" $Id: hippi_utils.8,v 1.1 1995/02/28 23:17:20 vwelch Exp $ "
+.TH HIPPI_UTILS 8 "$Date: 1995/02/28 23:17:20 $"
+.SH NAME
+hippi_cmd, hippi_config, ifield, mksw \- hippisw utilities
+.SH SYNOPSIS
+.B hippi_cmd [-c config_file] [-v] <host|switch>
+.B <command1> <command2> ...
+.LP
+.B hippi_config [-c config_file] -[ails] [-v]
+.LP
+.B ifield [-c config_file] [-p] [-l] source
+.B target [target2] ...
+.LP
+.B ifield [-c config_file] destination
+.LP
+.B mksw [-c config_file] [-t] [-v] [switch_name]
+.LP
+.B harp [-c config_file] [-C] [-i] [-v] [<architecture>|hosts] [<host>]
+.LP
+.SH DESCRIPTION
+
+The -c option with any of the utilities allows the specification of an
+alternate configuration file to use.
+
+The -v option causes a utility to print it's version number and exit.
+
+
+.B hippi_cmd
+is a program that generates commands for the hippi switches to perform
+certain simple actions. It's output is designed to be piped directly
+to hippisw(8).
+
+Current commands are display and clear. display will display the hippi
+switch statistics for a particular switch or port a host is connected to,
+clear will clear (zero) the same statistics.
+
+This utility is mainly designed to be used by a front end interface
+(i.e. for mosaic).
+
+
+.B hippi_config
+is a program that reads and parses a configuration file and then dumps the
+output. It is intended mostly as a debugging tool. By default it prints out a
+parsed version of the config.hippi file.
+
+The -i option causes it to print an IP to logical address mapping.
+The -l option causes it to print a logical address to port mapping.
+The -s option causes it to print a list of preferred routes when
+transversing from one switch to another. The -a option causes it to
+print all the above information.
+
+
+.B ifield
+is a program that generates source routes, returns logical addresses,
+or physical locations of devices on the HIPPI network.
+
+ To generate a source route, ifield is invoked with multiple arguments,
+each being a host, device or switch on the network. ifield will return
+an ifield which forms a route from the first argument to the second
+then on to any subsequent targets in order. The -p option will cause
+the ifield program to explicitly print the hop-by-hop path. The -l
+option will give a loopback address, the address will go from source
+to the last target and then return (via the same path) to the source.
+
+ If only a single argument is given, ifield will return the default
+logical address for the host or device specified by the argument.
+
+ If the -L flag is specified, a single argument is expected and ifield
+will return the physical location of the host or device specified by
+the argument. The output will be in the format "<switch> <port number>\n".
+
+
+.B mksw
+is a program which reads the HIPPI network configuration file and
+outputs a file of commands to set logical address to physical port mappings
+for the network switches. The resulting file is designed to be piped into
+hippisw(8) but can be loaded manually on to the switches.
+
+By default mksw will output a file containing configurations for all switches
+on the network. If a switch is specified on the command line it will
+only output a configuration for that switch.
+
+A loopback address, defaulting to 0x000, but configurable in the config.hippi
+file, is also set up for all occupied ports as a loopback address.
+
+Additionally if a tester is configured on the HIPPI network mksw will
+set up a loopback address for each switch. This address (which is in
+the form of 0xf## where ## is the switch number) will route any
+connection to a switch and then back from the switch to the tester.
+It's intended purposed is for connectivity testing.
+
+The -t option suppresses all comments. This is useful if the file is
+being directly feed to the switch without going through hippisw.
+
+
+.B harp
+is a hippi arp table generator. If given a specific architecture it will
+create a IP to Ifield map file for that architecture. If the word "hosts"
+is used in place of an architecture, it will create a file in a format
+suitable for use as an /etc/hosts file, with comments intended to make it
+very user readable.
+
+The second argument of hostname is required for Cray hosts as the specific
+hostname of the host the harp file is intended for is required to create
+the file (the device numbers).
+
+The -i option causes the output file to contain only IP addresses and not
+hostnames. The -C option specifies terse mode and suppresses all comments
+in the output.
+
+
+.SH FILES
+.PD 0
+.TP 20
+.B config.hippi
+The HIPPI configuration file. This file contains the name and
+port number where the server is running, as well as the layout
+of the HIPPI network.
+.PD
+.SH "SEE ALSO"
+.BR hippisw (8),
+.BR hippiswd (8),
+.BR config_hippi (5)
