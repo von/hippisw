@@ -2,7 +2,7 @@
 
 		CHANGES
 
-In Working Copy:
+From 0.2.2 to 0.2.3:
 	ADDED: Daemon now logs IP address of connecting client.
 	BUG FIX: If last read from switch was a NULL we now only do
 		a quick poll. This was causing montentary pauses during
