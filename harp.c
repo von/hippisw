@@ -4,7 +4,7 @@
  *
  *	The map file is written to standard output.
  *
- *	$Id: harp.c,v 1.4 1995/07/22 20:08:02 vwelch Exp $
+ *	$Id: harp.c,v 1.5 1995/10/02 15:45:04 vwelch Exp $
  */
 #include <stdio.h>
 #include "basic_defines.h"
@@ -32,6 +32,7 @@ enum system_type {
   ARCH_CONVEX,			/* CONVEX			*/
   ARCH_CS6400,			/* Cray Server 6400		*/
   ARCH_GIGAROUTER,		/* Netstar Gigarouter		*/
+  ARCH_EG1,			/* Essential EG-1		*/
   ARCH_END_LIST
 };
 
@@ -43,6 +44,7 @@ struct token_mapping tokens[] = {
   { "convex",		ARCH_CONVEX },
   { "cs6400",		ARCH_CS6400 },
   { "gigarouter",	ARCH_GIGAROUTER },
+  { "eg1",		ARCH_EG1 },
   { NULL,		0 }
 };
 
@@ -54,6 +56,7 @@ char *arches[] = {
   "Convex",
   "CS6400",
   "Gigarouter",
+  "EG-1",
   ""
 };
 
@@ -436,6 +439,24 @@ print_entry(arch, out_file, map, local_host_port)
       hostname_to_string(hostname),
       local_host_port->giga_board_num,
       logical_to_ifield(logaddr));
+    break;
+
+  case ARCH_EG1:
+    {
+    static int entry_count = 1;
+
+    if (map->netaddr == NETADDR_NULL)
+      return;
+
+    if (use_dot_address)
+      comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
+  
+    fprintf(out_file, "IP%d=%s ULA%d=0-0-0-0-0-0 SWADDR%d=%x\n",
+	    entry_count, hostname_to_string(hostname),
+	    entry_count, entry_count, logaddr);
+
+    entry_count++;
+    }
     break;
   }
 }
