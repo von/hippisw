@@ -6,7 +6,7 @@
 #
 #	Generates appropriate make.hippisw.inc
 #
-#	$Id: configure,v 1.2 1995/05/16 18:42:10 vwelch Exp $
+#	$Id: configure,v 1.3 1995/08/16 00:46:00 vwelch Exp $
 #
 ###########################################################################
 
@@ -88,6 +88,8 @@ echo "# Makefile includes for $os_name" >> $make_inc
 echo "ARCH=$os_name" >> $make_inc
 echo "ARCH_DIR=./$os_name" >> $make_inc
 echo "SRC_DIR=$src_dir" >> $make_inc
+echo "BIN_DIR=$bin_dir" >> $make_inc
+echo "MAN_DIR=$man_dir" >> $make_inc
 echo "CC=$cc" >> $make_inc
 echo "ARCH_CC_FLAGS=$arch_cc_flags $cflags $debugflags" >> $make_inc
 echo "ARCH_LD_FLAGS=$arch_ld_flags $ldflags" >> $make_inc
