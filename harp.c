@@ -4,7 +4,7 @@
  *
  *	The map file is written to standard output.
  *
- *	$Id: harp.c,v 1.3 1995/03/30 20:53:13 vwelch Exp $
+ *	$Id: harp.c,v 1.4 1995/07/22 20:08:02 vwelch Exp $
  */
 #include <stdio.h>
 #include "basic_defines.h"
@@ -30,7 +30,9 @@ enum system_type {
   ARCH_SGI,			/* SGI				*/
   ARCH_DXE,			/* NSC DXE HIPPI gateway	*/
   ARCH_CONVEX,			/* CONVEX			*/
-  ARCH_CS6400
+  ARCH_CS6400,			/* Cray Server 6400		*/
+  ARCH_GIGAROUTER,		/* Netstar Gigarouter		*/
+  ARCH_END_LIST
 };
 
 struct token_mapping tokens[] = {
@@ -40,6 +42,7 @@ struct token_mapping tokens[] = {
   { "dxe",		ARCH_DXE },
   { "convex",		ARCH_CONVEX },
   { "cs6400",		ARCH_CS6400 },
+  { "gigarouter",	ARCH_GIGAROUTER },
   { NULL,		0 }
 };
 
@@ -50,6 +53,8 @@ char *arches[] = {
   "NSC DXE gateway",
   "Convex",
   "CS6400",
+  "Gigarouter",
+  ""
 };
 
 
@@ -143,9 +148,12 @@ char **argv;
   }
 
   /*	Do we need host name?	*/
-  if ((arch == ARCH_CRAY) && (host == NULL)) {
-    fprintf(stderr, "Hostname required for Cray architecture.\n\n");
-    errflg++;
+  if ((arch == ARCH_CRAY) || (arch == ARCH_GIGAROUTER)) {
+    if (host == NULL) {
+      fprintf(stderr, "Hostname required for %s architecture.\n\n",
+              arches[arch]);
+      errflg++;
+    }
 
   } else {
 
@@ -284,6 +292,21 @@ print_header(arch, out_file, host_port)
     comment(arch, out_file,
 	    "----------\t\t\t-------\t\t\t----------\n");
     break;
+
+  case ARCH_GIGAROUTER:
+    comment(arch, out_file,
+	    "\n");
+    comment(arch, out_file,
+	    "\tFile: /etc/gria.conf\n");
+    comment(arch, out_file,
+	    "\n");
+    comment(arch, out_file,
+	    "\tFormat:\n");
+    comment(arch, out_file,
+	    "\t gria <IP address> = <board #> <Ifield>\n");
+    comment(arch, out_file,
+	    "\n");
+    break;
   }
 }
 
@@ -301,6 +324,10 @@ print_entry(arch, out_file, map, local_host_port)
   SWITCH		*sw = host_port->swp_switch;
   char			*hostname = map->hostname;
   
+  /* XXX - make HOSTS a special case so I don't have to gave all these
+   * if map->netaddr == NETADDR_NULL)'s all over the place.
+   */
+
   switch(arch) {
   case ARCH_CRAY:
     if (map->netaddr == NETADDR_NULL)
@@ -311,7 +338,7 @@ print_entry(arch, out_file, map, local_host_port)
     fprintf(out_file, "direct %-40s", hostname_to_string(hostname));
     fprintf(out_file, "\t%8.8x", logical_to_ifield(logaddr));
     fprintf(out_file, "  %4.4x  %4.4x  %d ;\n",
-	    local_host_port->host_idev, local_host_port->host_odev,
+	    local_host_port->cray_idev, local_host_port->cray_odev,
 	    host_port->host_mtu);
     break;
 
@@ -396,6 +423,19 @@ print_entry(arch, out_file, map, local_host_port)
     fprintf(out_file, "%-24s\t0:0:0:0:0:0\t\t%#x\n",
 	    hostname_to_string(hostname),
 	    logical_to_ifield(logaddr));
+    break;
+
+  case ARCH_GIGAROUTER:
+    if (map->netaddr == NETADDR_NULL)
+      return;
+
+    if (use_dot_address)
+      comment(arch, out_file, " %s\n", hostname_to_fullname(hostname));
+
+    fprintf(out_file, "gria %s = %d %#x\n",
+      hostname_to_string(hostname),
+      local_host_port->giga_board_num,
+      logical_to_ifield(logaddr));
     break;
   }
 }

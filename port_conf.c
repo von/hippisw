@@ -57,6 +57,7 @@ enum option_values {
   OPTION_NEED_DISABLED,
   OPTION_TESTER,
   HOSTOPT_DEV,
+  HOSTOPT_BOARD,
   LINKOPT_DEFAULT,
   LINKOPT_METRIC
 };
@@ -89,6 +90,7 @@ static struct token_mapping host_options[] = {
   { "addhost",		OPTION_ADDHOST },
   { "mtu",		OPTION_MTU },
   { "dev",		HOSTOPT_DEV },
+  { "board",		HOSTOPT_BOARD },
   { NULL,		0 }
 };
 
@@ -266,8 +268,9 @@ scan_host(port)
   /*
    *	Set Defaults
    */
-  port->host_idev = NO_DEVICE_NUMBER;
-  port->host_odev = NO_DEVICE_NUMBER;
+  port->cray_idev = NO_DEVICE_NUMBER;
+  port->cray_odev = NO_DEVICE_NUMBER;
+  port->giga_board_num = NO_DEVICE_NUMBER;
   port->host_mtu = HIPPI_MTU;
   NULL_STRING(port->host_ifname);
 
@@ -327,8 +330,29 @@ scan_host(port)
 	break;
       }
       
-      port->host_idev = str_to_int(argument);
-      port->host_odev = str_to_int(argument2);
+      port->cray_idev = str_to_int(argument);
+      port->cray_odev = str_to_int(argument2);
+      break;
+
+    case HOSTOPT_BOARD:
+      argument = read_option();
+
+      if (port->swp_type != HIPPI_HOST) {
+	config_error("Board option only valid for HIPPI hosts.\n");
+	break;
+      }
+
+      if (argument == NULL) {
+	config_error("Board number required for board option.\n");
+	break;
+      }
+
+      if (is_numeric(argument) == FALSE) {
+	config_error("\"%s\" is not a valid numeric argument.\n", argument);
+	break;
+      }
+
+      port->giga_board_num = str_to_int(argument);
       break;
     }
   }

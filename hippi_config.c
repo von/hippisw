@@ -3,7 +3,7 @@
  *
  *	Read and dump the hippisw config file.
  *
- *	$Id: hippi_config.c,v 1.2 1995/03/27 16:50:47 vwelch Exp $
+ *	$Id: hippi_config.c,v 1.3 1995/07/22 20:08:03 vwelch Exp $
  */
 #include <stdio.h>
 
@@ -216,13 +216,15 @@ FILE *file;
 	break;
 
       case HIPPI_HOST:
-	fprintf(file, "\t%-14s",
+	fprintf(file, "\t%-14s ",
 		netaddr_to_ascii(sp->host_addr));
 	if (sp->host_mtu != HIPPI_MTU)
-	  fprintf(file, " mtu %5d", sp->host_mtu);
-	if ((sp->host_idev != NO_DEVICE_NUMBER) &&
-	    (sp->host_odev != NO_DEVICE_NUMBER))
-	  fprintf(file," dev %3d/%-3d  ", sp->host_idev, sp->host_odev);
+	  fprintf(file, "mtu %5d  ", sp->host_mtu);
+	if ((sp->cray_idev != NO_DEVICE_NUMBER) &&
+	    (sp->cray_odev != NO_DEVICE_NUMBER))
+	  fprintf(file,"dev %3d/%-3d  ", sp->cray_idev, sp->cray_odev);
+	if (sp->giga_board_num != NO_DEVICE_NUMBER)
+	  fprintf(file,"board %d  ", sp->giga_board_num);
 	break;
 	
       case HIPPI_DX:

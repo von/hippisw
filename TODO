@@ -11,6 +11,7 @@
  o	Check syslog() stuff: failed connection, bad password, message on
 		connection, dying and killed.
  o	Add setting of page size for ES-1.
+	- Add general switch-based connection setup
  o	Add tcpwrapper-type connection control.
  o	After disconnection, wait a little before reconnecting to give
 	terminal server a chance to clear the port.

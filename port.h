@@ -56,6 +56,22 @@ struct	swp_link	{
 
 #define DEFAULT_LINK_METRIC		1
 
+/*
+ *	Host specific info
+ */
+struct swp_cray {
+  int		idev;			/* Input minor device number	*/
+  int		odev;			/* Output minor device number	*/
+};
+
+struct swp_giga {
+  int		board_num;		/* HIPPI board port #		*/
+};
+
+union swp_hi {
+  struct swp_cray	cray;
+  struct swp_giga	giga;
+};
 
 /*	An IP host or gateway
  */
@@ -64,9 +80,7 @@ struct	swp_host	{
   int		h_mtu;			/* MTU in bytes			*/
   char		h_ifname[16];		/* Interface name		*/
   Netaddr	h_netaddr; 		/* Internet address		*/
-  /* For crays */
-  int		h_idev;			/* Input minor device number	*/
-  int		h_odev;			/* Output minor device number	*/
+  union swp_hi	h_info;			/* Host-specific info		*/
 };
 
 union	swp_u {
@@ -85,10 +99,13 @@ union	swp_u {
 #define link_metric	swp_thing.l.l_metric
 #define host_name	swp_thing.h.h_name
 #define host_ifname	swp_thing.h.h_ifname
-#define host_idev	swp_thing.h.h_idev
-#define host_odev	swp_thing.h.h_odev
 #define host_mtu	swp_thing.h.h_mtu
 #define host_addr	swp_thing.h.h_netaddr
+
+#define cray_idev	swp_thing.h.h_info.cray.idev
+#define cray_odev	swp_thing.h.h_info.cray.odev
+
+#define giga_board_num	swp_thing.h.h_info.giga.board_num
 
 
 struct sw_port	{		/* Port description structure		*/

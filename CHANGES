@@ -7,6 +7,7 @@ In Working Copy:
 	BUG FIX: If last read from switch was a NULL we now only do
 		a quick poll. This was causing montentary pauses during
 		some outputs.
+	ADDED: Support for Netstar Gigarouter.
 
 From 0.2.1 to 0.2.2:
 	BUG FIX: Printing of error caused by a duplicate IP address printed
